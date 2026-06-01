@@ -1,0 +1,61 @@
+name: wecircle
+description: "تطبيق WeCircle - إدارة مدرسية لأولياء الأمور والمعلمين"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  google_fonts: ^8.0.2
+  smooth_page_indicator: ^2.0.1
+  fl_chart: ^1.2.0
+  percent_indicator: ^4.2.3
+  intl: ^0.20.2
+  lottie: ^3.1.2
+  flutter_screenutil: ^5.9.3
+  dio: ^5.4.3
+  shared_preferences: ^2.2.3
+  image_picker: ^1.1.2
+  device_info_plus: 10.1.0
+  supabase_flutter: ^2.12.4
+  flutter_map: ^7.0.1
+  latlong2: ^0.9.1
+  geolocator: ^12.0.0
+  socket_io_client: ^3.0.2
+  flame: ^1.35.1
+  provider: ^6.1.5+1
+  cached_network_image: ^3.3.1
+  url_launcher: ^6.3.0
+  audioplayers: ^6.6.0
+  path_provider: ^2.1.5
+  flutter_local_notifications: ^17.2.3
+  flutter_animate: ^4.5.2
+  speech_to_text: ^6.6.2
+  flutter_tts: ^4.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/animations/
+    - assets/sounds/
+    - assets/images/
+    - assets/images/avatars/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"

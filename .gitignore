@@ -1,0 +1,40 @@
+# OS files
+.DS_Store
+.cursor/
+.idea/
+
+# Zip files
+*.zip
+*.rar
+*.tar.gz
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*
+
+# Node / JS dependencies and build directories
+node_modules/
+dist/
+.next/
+build/
+*.tsbuildinfo
+out/
+
+# Flutter / Dart dependencies and build directories
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+android/app/build/
+ios/Flutter/Ephemeral/
+*.ipa
+*.apk
+*.cab
+*.exe
+*.msi
+*.msix
+*.deb
+*.rpm

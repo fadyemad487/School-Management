@@ -1,0 +1,113 @@
+.mainContent {
+  padding-top: 20px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ov-surface);
+  border: 1px solid var(--ov-border);
+  padding: 8px 16px;
+  border-radius: 10px;
+  width: 300px;
+}
+
+.searchBox input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--ov-text);
+  width: 100%;
+}
+
+.listScrollContainer {
+  max-height: 320px; /* Approximately height of 3 users */
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-bottom: 20px;
+}
+
+/* Custom Scrollbar for premium feel */
+.listScrollContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.listScrollContainer::-webkit-scrollbar-track {
+  background: var(--ov-surface-2);
+  border-radius: 10px;
+}
+
+.listScrollContainer::-webkit-scrollbar-thumb {
+  background: var(--ov-border);
+  border-radius: 10px;
+}
+
+.leaveMeta {
+  margin-top: 10px;
+  font-size: 11px;
+  display: flex;
+  gap: 20px;
+  color: var(--ov-text-muted);
+}
+
+.leaveMeta strong {
+  color: var(--ov-text-soft);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  color: var(--ov-text-muted);
+  gap: 16px;
+}
+
+.footerInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--ov-divider);
+  padding-top: 16px;
+  font-size: 12px;
+  color: var(--ov-text-muted);
+}
+
+.pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--ov-border);
+  background: var(--ov-surface);
+  color: var(--ov-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination button:not(:disabled):hover {
+  background: var(--ov-surface-2);
+  color: var(--ov-text);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive adjustment */
+@media (max-width: 768px) {
+  .searchBox {
+    width: 100%;
+  }
+}
