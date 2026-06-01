@@ -1,0 +1,10 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd backend && npm install && npx prisma generate && npx tsc -p tsconfig.json"
+  },
+  "deploy": {
+    "startCommand": "cd backend && node dist/server.js"
+  }
+}
