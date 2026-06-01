@@ -386,8 +386,8 @@ export const studentMobileAiChat = asyncHandler(async (req: Request, res: Respon
   const studentId = (req as any).studentId as string | undefined;
   const schoolId = req.schoolId;
 
-  if (!studentId) {
-    throw new ValidationError("Unauthorized: Student context missing.");
+  if (!studentId || !schoolId) {
+    throw new ValidationError("Unauthorized: Student or School context missing.");
   }
 
   const { message, history } = req.body as {
@@ -405,7 +405,7 @@ export const studentMobileAiChat = asyncHandler(async (req: Request, res: Respon
   }
 
   const student = await prisma.student.findFirst({
-    where: { id: studentId, schoolId },
+    where: { id: studentId, schoolId: schoolId as string },
     select: { nameAr: true, points: true },
   });
 
