@@ -7,12 +7,13 @@ export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   // Allow common local Vite ports for development
   allowedOrigins: [
-    process.env.FRONTEND_URL || "http://localhost:3000",
+    "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
-    "http://localhost:5176"
+    "http://localhost:5176",
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
   ],
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
