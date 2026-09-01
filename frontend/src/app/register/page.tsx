@@ -152,7 +152,7 @@ export default function RegisterPage() {
       localStorage.setItem("play_intro", "true");
 
       setSuccess(t('auth_created'));
-      setTimeout(() => router.push("/dashboard"), 20000);
+      setTimeout(() => router.push("/dashboard"), 1500);
     } catch (err: any) {
       const apiErr = extractApiError(err);
       setError(apiErr.message);
