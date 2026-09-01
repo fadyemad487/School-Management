@@ -6,25 +6,48 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 
-type AuthUser = { id: string; email: string | undefined; fullName: string; schoolId?: string | null; role?: string; school?: any; avatarUrl?: string };
+export type AuthUser = { id: string; email: string | undefined; fullName: string; schoolId?: string | null; role?: string; school?: any; avatarUrl?: string };
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   logout: (reason?: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  setAuthUser: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = sessionStorage.getItem("edu_auth_user");
+        if (cached) return JSON.parse(cached);
+      } catch (_) {}
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const setAuthUser = useCallback((newUser: AuthUser) => {
+    setUser(newUser);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("edu_auth_user", JSON.stringify(newUser));
+      } catch (_) {}
+    }
+  }, []);
 
   const logout = useCallback(async (reason?: string) => {
     await supabase.auth.signOut();
     setUser(null);
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("edu_auth_user");
+      } catch (_) {}
+    }
     disconnectSocket();
     if (reason) alert(reason);
     router.push("/login");
@@ -45,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           avatarUrl: sbUser?.user_metadata?.custom_avatar_url || sbUser?.user_metadata?.avatar_url
         };
         setUser(userData);
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem("edu_auth_user", JSON.stringify(userData));
+          } catch (_) {}
+        }
         const accessToken = (await supabase.auth.getSession()).data.session?.access_token;
         if (accessToken) connectSocket(accessToken);
       }
@@ -53,6 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Failed to fetch profile:", err);
       }
       setUser(null);
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem("edu_auth_user");
+        } catch (_) {}
+      }
     } finally {
       setLoading(false);
     }
@@ -69,17 +102,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session) {
         fetchProfile();
       } else {
+        setUser(null);
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.removeItem("edu_auth_user");
+          } catch (_) {}
+        }
         setLoading(false);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        // Show global loading screen while we fetch the profile
-        setLoading(true);
         fetchProfile();
       } else if (event === "SIGNED_OUT") {
         setUser(null);
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.removeItem("edu_auth_user");
+          } catch (_) {}
+        }
         setLoading(false);
         disconnectSocket();
       }
@@ -89,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, refreshProfile: fetchProfile }}>
+    <AuthContext.Provider value={{ user, loading, logout, refreshProfile: fetchProfile, setAuthUser }}>
       {children}
     </AuthContext.Provider>
   );

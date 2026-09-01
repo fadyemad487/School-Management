@@ -498,14 +498,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (loading && !user) {
-    return (
-      <div className="dash-auth-loading">
-        <div className="spinner-large" />
-      </div>
-    );
-  }
-
   if (!user) {
     return null;
   }

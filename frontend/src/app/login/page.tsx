@@ -34,7 +34,7 @@ const AppleIcon = () => (
 export default function LoginPage() {
   const { t, isAr } = useTranslation();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth(); // ADDED
+  const { user, loading: authLoading, setAuthUser } = useAuth();
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
@@ -58,21 +58,22 @@ export default function LoginPage() {
         if (user) {
           setOauthStatus('success');
           // Wait 1.5 seconds so user sees the checkmark, then redirect
-          setTimeout(() => router.push("/dashboard"), 1500);
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
         } else {
           setOauthStatus('error');
-          // Show error for 2.5 seconds, then remove overlay
+          // Show error for 4 seconds, then remove overlay
           setTimeout(() => {
             setOauthStatus('idle');
-            setGeneralError(isAr ? "لم يتم العثور على حساب مرتبط. يرجى تسجيل الدخول العادي وربط الحساب من الإعدادات أولاً." : "Account not found. Please log in normally and link your account in settings first.");
-          }, 2500);
+          }, 4000);
         }
       }
     } else if (oauthStatus === 'idle' && user) {
       // Normal auto-redirect if already logged in but not currently verifying
       router.push("/dashboard");
     }
-  }, [user, authLoading, oauthStatus, router, isAr]);
+  }, [user, authLoading, oauthStatus, router]);
   
   // Handle Hydration safely for localStorage
   const [rememberedEmail, setRememberedEmail] = useState("");
@@ -115,6 +116,18 @@ export default function LoginPage() {
         email: values.email,
         password: values.password
       });
+
+      if (loginData.data?.user) {
+        setAuthUser({
+          id: loginData.data.user.id,
+          email: loginData.data.user.email,
+          fullName: loginData.data.user.fullName,
+          schoolId: loginData.data.user.school?.id,
+          role: loginData.data.user.role,
+          school: loginData.data.user.school,
+          avatarUrl: loginData.data.user.avatarUrl
+        });
+      }
 
       if (loginData.data?.session) {
         await supabase.auth.setSession({

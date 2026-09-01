@@ -120,12 +120,12 @@ export const translations = {
 
     // General Actions
     btn_new_broadcast: "New Broadcast",
-    btn_authorize: "Authorize Access",
+    btn_authorize: "Sign In",
     btn_remember: "Remember Me",
     btn_forgot: "Forgot password?",
     btn_no_account: "Don't have an account?",
     btn_signup: "Sign Up",
-    btn_authorizing: "Authorizing...",
+    btn_authorizing: "Signing In...",
     field_email: "Email Address",
     field_password: "Password",
     field_school_name: "School / Institution Name",
@@ -618,12 +618,12 @@ export const translations = {
 
     // General Actions
     btn_new_broadcast: "تنبيه جديد",
-    btn_authorize: "تفعيل الدخول",
+    btn_authorize: "تسجيل الدخول",
     btn_remember: "خليني مسجل",
     btn_forgot: "نسيت الباسورد؟",
     btn_no_account: "معندكش حساب؟",
     btn_signup: "سجل دلوقتي",
-    btn_authorizing: "بنتحقق من البيانات...",
+    btn_authorizing: "جاري تسجيل الدخول...",
     field_email: "البريد الإلكتروني",
     field_password: "كلمة السر",
     field_school_name: "اسم المدرسة / المؤسسة",
