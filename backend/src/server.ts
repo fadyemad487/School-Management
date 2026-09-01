@@ -12,10 +12,20 @@ import routes from "./routes";
 const app = express();
 const httpServer = createServer(app);
 
+// Railway and other reverse proxies terminate TLS before forwarding requests.
+// Trust exactly one proxy so req.ip remains reliable for rate limiting.
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
 // Initialize WebSocket with school-based room isolation
 initWebSocket(httpServer);
 
-app.use(helmet());
+app.use(helmet({
+  hsts: env.nodeEnv === "production"
+    ? { maxAge: 31_536_000, includeSubDomains: true, preload: true }
+    : false,
+  referrerPolicy: { policy: "no-referrer" },
+}));
 app.use(cors({ origin: env.allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));

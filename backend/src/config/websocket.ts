@@ -2,6 +2,8 @@ import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
 import { env } from "./env";
 import { prisma } from "./prisma";
+import { supabaseAdmin } from "./supabase";
+import jwt from "jsonwebtoken";
 
 let io: Server;
 
@@ -21,10 +23,49 @@ export function initWebSocket(httpServer: HttpServer): Server {
     transports: ["websocket", "polling"]
   });
 
+  io.use(async (socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (typeof token !== "string" || !token) {
+      next(new Error("Authentication required"));
+      return;
+    }
+
+    try {
+      // Browser dashboard sessions are Supabase JWTs. Custom mobile credential
+      // JWTs are also supported without trusting any client-provided identity.
+      try {
+        const custom = jwt.verify(token, env.supabaseJwtSecret) as {
+          id: string; role: string; schoolId?: string;
+        };
+        const credential = await prisma.appCredential.findUnique({
+          where: { id: custom.id },
+          include: { teacher: true, parent: true, student: true },
+        });
+        if (!credential || !credential.isActive) throw new Error("Inactive credential");
+        const userId = credential.teacher?.userId ?? credential.parent?.userId ?? credential.student?.userId ?? credential.id;
+        socket.data.auth = { schoolId: credential.schoolId, role: credential.role, userId };
+        next();
+        return;
+      } catch {
+        // Not a custom credential token; continue with Supabase verification.
+      }
+
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      if (error || !user?.email) throw new Error("Invalid token");
+      const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+      if (!dbUser) throw new Error("User not found");
+      socket.data.auth = { schoolId: dbUser.schoolId, role: dbUser.role, userId: dbUser.id };
+      next();
+    } catch {
+      next(new Error("Unauthorized"));
+    }
+  });
+
   io.on("connection", (socket: Socket) => {
-    const schoolId = socket.handshake.query.schoolId as string | undefined;
-    const userRole = socket.handshake.query.role as string | undefined;
-    const userId = socket.handshake.query.userId as string | undefined;
+    const auth = socket.data.auth as { schoolId: string | null; role: string; userId: string };
+    const schoolId = auth.schoolId;
+    const userRole = auth.role;
+    const userId = auth.userId;
 
     if (userRole === "SUPER_ADMIN") {
       // SUPER_ADMIN joins a special room to receive all events
@@ -41,24 +82,6 @@ export function initWebSocket(httpServer: HttpServer): Server {
       socket.join(`user:${userId}`);
       console.log(`[WS] User credential room joined: user:${userId}`);
 
-      // Query database asynchronously to resolve real User.id and join its target room
-      prisma.appCredential.findUnique({
-        where: { id: userId },
-        include: { teacher: true, parent: true, student: true }
-      }).then((cred: any) => {
-        if (cred) {
-          let realUserId = cred.id;
-          if (cred.teacher) realUserId = cred.teacher.userId;
-          else if (cred.parent) realUserId = cred.parent.userId;
-          else if (cred.student) realUserId = cred.student.userId;
-
-          // Always join the real user room
-          socket.join(`user:${realUserId}`);
-          console.log(`[WS] Dynamic mapping: User joined real room: user:${realUserId}`);
-        }
-      }).catch((err: any) => {
-        console.error("[WS] Dynamic mapping error:", err);
-      });
     }
 
     socket.on("disconnect", () => {

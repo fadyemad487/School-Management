@@ -14,4 +14,16 @@ export const isSupabaseConfigured = Boolean(
 const safeUrl = isSupabaseConfigured ? supabaseUrl : "https://placeholder.supabase.co";
 const safeKey = isSupabaseConfigured ? supabaseAnonKey : "placeholder-anon-key";
 
-export const supabase = createClient(safeUrl, safeKey);
+/**
+ * Keep the authenticated session only for the lifetime of the current browser
+ * tab.  Supabase defaults to localStorage, which survives closing the browser
+ * and is not appropriate for an administrative school dashboard on shared
+ * devices.  sessionStorage still permits a normal page refresh in this tab.
+ */
+export const supabase = createClient(safeUrl, safeKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    storage: typeof window === "undefined" ? undefined : window.sessionStorage,
+  },
+});

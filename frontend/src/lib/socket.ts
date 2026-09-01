@@ -8,18 +8,16 @@ let socket: Socket | null = null;
  * Connect to the WebSocket server and join the school's room.
  * Each school gets its own room for data isolation.
  */
-export function connectSocket(schoolId: string | null, role: string, userId: string | null = null): Socket {
+export function connectSocket(accessToken: string): Socket {
   if (socket?.connected) {
     return socket;
   }
 
   socket = io(SOCKET_URL, {
     transports: ["websocket", "polling"],
-    query: {
-      schoolId: schoolId || "",
-      role,
-      userId: userId || ""
-    },
+    // The server derives the school, role, and user rooms from this verified
+    // token. Never trust those values when supplied by the browser.
+    auth: { token: accessToken },
     autoConnect: true
   });
 

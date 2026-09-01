@@ -21,6 +21,18 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// A rejected/expired token must not leave a stale authenticated UI on screen.
+// The provider observes the SIGNED_OUT event and returns the user to login.
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      await supabase.auth.signOut();
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Structured error returned by the backend.
  */

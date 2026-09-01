@@ -45,7 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           avatarUrl: sbUser?.user_metadata?.custom_avatar_url || sbUser?.user_metadata?.avatar_url
         };
         setUser(userData);
-        connectSocket(userData.schoolId || null, userData.role || "USER", userData.id);
+        const accessToken = (await supabase.auth.getSession()).data.session?.access_token;
+        if (accessToken) connectSocket(accessToken);
       }
     } catch (err: any) {
       if (err.response?.status !== 401) {

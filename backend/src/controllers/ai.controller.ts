@@ -188,7 +188,7 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
     - Logs: activityLog, archive.
 
     GUIDELINES:
-    1. Use 'query_school_data' for information retrieval. **ALWAYS check for 'credentials' if asked for logins.**
+    1. Use 'query_school_data' for information retrieval. Never request, expose, or modify credentials, passwords, authentication tokens, or security settings.
     2. Use 'update_school_data' for data modifications. **CRITICAL UPDATE RULES:**
        - NEVER guess UUIDs or Model Names. You MUST call 'query_school_data' FIRST to get the correct ID and verify which model the data belongs to.
        - **MODEL CLARITY:** 'applicationFee' is ONLY for new applicants (Admissions). For ALL registered students, use the 'invoice' model for fees, discounts, and payments.
@@ -199,8 +199,7 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
     5. **SECURITY:** Your access is strictly locked to schoolId: ${schoolId}. You cannot see other schools.
     6. **NO HALLUCINATION:** If data is missing, state it. Do not invent records.
     7. Formatting: Use Markdown Tables, Bold text, and Emojis for a premium feel. **DO NOT use LaTeX or complex math blocks (e.g., [ \text{...} ]). Use simple plain text for calculations.**
-    8. **APP LOGIN:** Username = 'loginId', Password = 'plainTextPw'. Found in 'credentials' array.
-    9. You are the "Neural Core" of EduControl. Execute with precision.
+    8. You are the "Neural Core" of EduControl. Execute with precision.
   `;
 
   const tools = [
@@ -329,6 +328,15 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
             throw new Error(`Model ${rawModelName} not found in database.`);
           }
 
+          // Never expose secrets or let an LLM alter identity/platform records.
+          const protectedModels = new Set([
+            "appCredential", "user", "school", "schoolSettings",
+            "activityLog", "aiChatMessage"
+          ]);
+          if (protectedModels.has(modelName)) {
+            throw new Error("This model is not available through the AI assistant.");
+          }
+
           if (functionName === "query_school_data") {
             let whereClause = { ...args.query };
             
@@ -360,9 +368,8 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
                 user: true,
                 class: true,
                 grade: true,
-                credentials: true,
-                father: { include: { credentials: true } },
-                mother: { include: { credentials: true } },
+                father: true,
+                mother: true,
                 fromApplication: {
                   include: { father: true, mother: true }
                 }
@@ -373,7 +380,6 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
               }
               includeClause = {
                 ...(includeClause || {}),
-                credentials: true,
                 fatherOf: true,
                 motherOf: true
               };
@@ -381,7 +387,6 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
               includeClause = {
                 ...(includeClause || {}),
                 user: true,
-                credentials: true,
                 teacherSubjects: { include: { subject: true, class: true } }
               };
             } else if (modelName === "user") {
@@ -483,9 +488,6 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
           console.error(`[AI TOOL ERROR] ${functionName}:`, e.message);
           result = `Error: ${e.message}`;
         }
-
-        console.log(`[AI TOOL CALL] ${functionName} ->`, args);
-        console.log(`[AI TOOL RESULT] ->`, result);
 
         messages.push({
           role: "tool",
