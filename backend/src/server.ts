@@ -5,6 +5,7 @@ import morgan from "morgan";
 import { createServer } from "http";
 import { env } from "./config/env";
 import { errorHandler } from "./middlewares/errorHandler";
+import { apiLimiter } from "./middlewares/rateLimit";
 import { initWebSocket } from "./config/websocket";
 import { startOverdueChecker } from "./cron/checkOverdueInvoices";
 import routes from "./routes";
@@ -27,11 +28,11 @@ app.use(helmet({
   referrerPolicy: { policy: "no-referrer" },
 }));
 app.use(cors({ origin: env.allowedOrigins, credentials: true }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ limit: "5mb", extended: true }));
 app.use(morgan("dev"));
 
-app.use("/api", routes);
+app.use("/api", apiLimiter, routes);
 
 app.get("/", (_req, res) => {
   res.json({ 

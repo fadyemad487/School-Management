@@ -1,5 +1,8 @@
 import { Router } from "express";
+import { Role } from "@prisma/client";
 import { auth } from "../../middlewares/auth";
+import { tenantScope } from "../../middlewares/tenantScope";
+import { roleGuard } from "../../middlewares/roleGuard";
 import {
   generateCredentials,
   bulkGenerateCredentials,
@@ -11,7 +14,8 @@ import {
 
 const router = Router();
 
-router.use(auth);
+// Only administrators are allowed to view, generate, or manage credentials
+router.use(auth, tenantScope, roleGuard([Role.ADMIN, Role.SCHOOL_ADMIN, Role.SUPER_ADMIN]));
 
 router.get("/", getCredentials);
 router.post("/generate", generateCredentials);

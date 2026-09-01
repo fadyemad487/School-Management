@@ -9,12 +9,21 @@ type RateLimitOptions = {
 type Entry = { count: number; resetAt: number };
 
 /**
- * Small dependency-free limiter for public authentication endpoints. The
- * production edge/platform should still provide a distributed limiter; this
- * prevents straightforward password guessing on each API instance.
+ * Lightweight in-memory rate limiter with automatic cleanup
  */
 export function createRateLimiter(options: RateLimitOptions) {
   const requests = new Map<string, Entry>();
+
+  // Periodically sweep expired entries to prevent memory leaks
+  const interval = setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of requests.entries()) {
+      if (entry.resetAt <= now) {
+        requests.delete(key);
+      }
+    }
+  }, Math.max(30_000, options.windowMs));
+  if (interval.unref) interval.unref();
 
   return (req: Request, res: Response, next: NextFunction): void => {
     const now = Date.now();
@@ -38,3 +47,10 @@ export function createRateLimiter(options: RateLimitOptions) {
     next();
   };
 }
+
+/** General API rate limiter: 300 requests per 15 minutes per IP */
+export const apiLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  message: "Too many requests from this IP, please try again later."
+});
