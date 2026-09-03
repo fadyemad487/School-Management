@@ -46,11 +46,18 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const isOAuthRedirect = 
+    const hasOAuthToken = 
       window.location.hash.includes("access_token=") || 
       window.location.search.includes("code=");
 
-    if (!isOAuthRedirect) return;
+    const oauthInitiated = sessionStorage.getItem("oauth_in_progress") === "true";
+
+    // ONLY verify if an OAuth token is present AND OAuth was explicitly initiated
+    // This strictly prevents any spurious verification on signout or normal navigation!
+    if (!hasOAuthToken && !oauthInitiated) return;
+
+    // Immediately consume the flag so it never runs again on subsequent page loads
+    sessionStorage.removeItem("oauth_in_progress");
 
     setOauthStatus('verifying');
     let isMounted = true;
@@ -197,6 +204,9 @@ export default function LoginPage() {
     setOauthLoading(provider);
     setGeneralError("");
     try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("oauth_in_progress", "true");
+      }
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -204,10 +214,16 @@ export default function LoginPage() {
         }
       });
       if (error) {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("oauth_in_progress");
+        }
         setGeneralError(error.message);
         setOauthLoading(null);
       }
     } catch (err: any) {
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("oauth_in_progress");
+      }
       setGeneralError(err.message || "OAuth sign-in failed.");
       setOauthLoading(null);
     }

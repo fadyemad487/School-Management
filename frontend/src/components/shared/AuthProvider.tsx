@@ -46,14 +46,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") {
       try {
         sessionStorage.removeItem("edu_auth_user");
+        sessionStorage.removeItem("oauth_in_progress");
       } catch (_) {}
-      if (window.location.hash || window.location.search) {
-        window.history.replaceState(null, '', window.location.pathname);
-      }
     }
     disconnectSocket();
     if (reason) alert(reason);
-    router.replace("/login");
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    } else {
+      router.replace("/login");
+    }
   }, [router]);
 
   const fetchProfile = useCallback(async (): Promise<AuthUser | null> => {
