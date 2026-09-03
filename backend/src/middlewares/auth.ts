@@ -51,14 +51,28 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    const email = authUser.email;
-    if (!email) {
+    // Collect all candidate emails from authUser, identities, and metadata
+    const candidateEmails = Array.from(
+      new Set(
+        [
+          authUser.email,
+          ...(authUser.identities?.map((id: any) => id.identity_data?.email) || []),
+          authUser.user_metadata?.email
+        ]
+          .filter(Boolean)
+          .map((e: string) => e.toLowerCase())
+      )
+    );
+
+    if (candidateEmails.length === 0) {
       res.status(401).json({ success: false, message: "Invalid token: Email missing" });
       return;
     }
 
-    const dbUser = await prisma.user.findUnique({ 
-      where: { email },
+    const dbUser = await prisma.user.findFirst({ 
+      where: { 
+        email: { in: candidateEmails, mode: "insensitive" }
+      },
       include: {
         teacher: true,
         parent: true,
@@ -76,7 +90,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     req.user = {
       id: dbUser.id,
       supabaseId: authUser.id,
-      email,
+      email: dbUser.email,
       role: dbUser.role,
       schoolId: dbUser.schoolId
     };

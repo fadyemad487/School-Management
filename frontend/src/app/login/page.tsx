@@ -52,21 +52,23 @@ export default function LoginPage() {
 
     if (!isOAuthRedirect) return;
 
-    // Remove hash & search immediately from browser address bar so it never lingers on sign out or refresh
-    window.history.replaceState(null, '', window.location.pathname);
-
     setOauthStatus('verifying');
     let isMounted = true;
 
     const verifyOAuthFlow = async () => {
       try {
-        // Wait for Supabase client to parse URL and populate session
+        // Wait for Supabase client to parse URL and populate session from window.location.hash
         let session = (await supabase.auth.getSession()).data.session;
         const start = Date.now();
-        while (!session && Date.now() - start < 5000) {
+        while (!session && Date.now() - start < 6000) {
           await new Promise((resolve) => setTimeout(resolve, 200));
           if (!isMounted) return;
           session = (await supabase.auth.getSession()).data.session;
+        }
+
+        // Clean up hash from browser address bar ONLY after Supabase has parsed it
+        if (typeof window !== "undefined" && (window.location.hash || window.location.search)) {
+          window.history.replaceState(null, '', window.location.pathname);
         }
 
         if (!session) {
