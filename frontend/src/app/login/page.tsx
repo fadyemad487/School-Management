@@ -34,7 +34,7 @@ const AppleIcon = () => (
 export default function LoginPage() {
   const { t, isAr } = useTranslation();
   const router = useRouter();
-  const { user, loading: authLoading, setAuthUser } = useAuth();
+  const { user, loading: authLoading, setAuthUser, refreshProfile } = useAuth();
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
@@ -42,38 +42,76 @@ export default function LoginPage() {
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [oauthStatus, setOauthStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
 
-  // Check if we are returning from an OAuth flow
+  // Check if we are returning from an OAuth flow and verify cleanly without premature errors
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash.includes("access_token=")) {
-      setOauthStatus('verifying');
-    }
-  }, []);
+    if (typeof window === "undefined") return;
 
-  // Monitor auth status after an OAuth redirect
-  useEffect(() => {
-    // We only care if we are currently in the 'verifying' state
-    if (oauthStatus === 'verifying') {
-      // If auth system finished loading
-      if (!authLoading) {
-        if (user) {
+    const isOAuthRedirect = 
+      window.location.hash.includes("access_token=") || 
+      window.location.search.includes("code=");
+
+    if (!isOAuthRedirect) return;
+
+    setOauthStatus('verifying');
+    let isMounted = true;
+
+    const verifyOAuthFlow = async () => {
+      try {
+        // Wait for Supabase client to parse URL and populate session
+        let session = (await supabase.auth.getSession()).data.session;
+        const start = Date.now();
+        while (!session && Date.now() - start < 5000) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          if (!isMounted) return;
+          session = (await supabase.auth.getSession()).data.session;
+        }
+
+        if (!session) {
+          if (isMounted) {
+            setOauthStatus('error');
+            setTimeout(() => { if (isMounted) setOauthStatus('idle'); }, 4000);
+          }
+          return;
+        }
+
+        // Session is ready. Fetch local database user profile
+        const profile = await refreshProfile();
+        if (!isMounted) return;
+
+        if (profile) {
           setOauthStatus('success');
-          // Wait 1.5 seconds so user sees the checkmark, then redirect
           setTimeout(() => {
-            router.push("/dashboard");
-          }, 1500);
+            if (isMounted) router.push("/dashboard");
+          }, 1200);
         } else {
           setOauthStatus('error');
-          // Show error for 4 seconds, then remove overlay
           setTimeout(() => {
-            setOauthStatus('idle');
+            if (isMounted) setOauthStatus('idle');
+          }, 4000);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setOauthStatus('error');
+          setTimeout(() => {
+            if (isMounted) setOauthStatus('idle');
           }, 4000);
         }
       }
-    } else if (oauthStatus === 'idle' && user) {
-      // Normal auto-redirect if already logged in but not currently verifying
+    };
+
+    verifyOAuthFlow();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshProfile, router]);
+
+  // Redirect if already logged in (when not verifying OAuth)
+  useEffect(() => {
+    if (oauthStatus === 'idle' && user) {
       router.push("/dashboard");
     }
-  }, [user, authLoading, oauthStatus, router]);
+  }, [user, oauthStatus, router]);
   
   // Handle Hydration safely for localStorage
   const [rememberedEmail, setRememberedEmail] = useState("");

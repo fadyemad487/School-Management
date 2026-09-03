@@ -12,7 +12,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   logout: (reason?: string) => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  refreshProfile: () => Promise<AuthUser | null>;
   setAuthUser: (user: AuthUser) => void;
 }
 
@@ -53,7 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login");
   }, [router]);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (): Promise<AuthUser | null> => {
+    setLoading(true);
     try {
       const { data } = await api.get("/auth/me");
       if (data.success) {
@@ -75,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         const accessToken = (await supabase.auth.getSession()).data.session?.access_token;
         if (accessToken) connectSocket(accessToken);
+        return userData;
       }
+      return null;
     } catch (err: any) {
       if (err.response?.status !== 401) {
         console.error("Failed to fetch profile:", err);
@@ -86,6 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           sessionStorage.removeItem("edu_auth_user");
         } catch (_) {}
       }
+      if (err.response?.status === 401) {
+        await supabase.auth.signOut();
+      }
+      return null;
     } finally {
       setLoading(false);
     }

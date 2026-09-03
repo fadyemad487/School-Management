@@ -107,6 +107,7 @@ function LinkedAccountsSection({ isAr }: { isAr: boolean }) {
       if (error) {
         alert(`❌ ${error.message}`);
       } else {
+        await supabase.auth.refreshSession();
         await fetchIdentities();
       }
     } catch (err: any) {
