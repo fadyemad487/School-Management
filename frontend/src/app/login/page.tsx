@@ -52,6 +52,9 @@ export default function LoginPage() {
 
     if (!isOAuthRedirect) return;
 
+    // Remove hash & search immediately from browser address bar so it never lingers on sign out or refresh
+    window.history.replaceState(null, '', window.location.pathname);
+
     setOauthStatus('verifying');
     let isMounted = true;
 
