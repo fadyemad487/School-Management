@@ -16,7 +16,13 @@ let io: Server;
 export function initWebSocket(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
     cors: {
-      origin: env.allowedOrigins,
+      origin: (origin, callback) => {
+        if (env.isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       methods: ["GET", "POST"],
       credentials: true
     },

@@ -27,7 +27,16 @@ app.use(helmet({
     : false,
   referrerPolicy: { policy: "no-referrer" },
 }));
-app.use(cors({ origin: env.allowedOrigins, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (env.isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ limit: "5mb", extended: true }));
 app.use(morgan("dev"));
