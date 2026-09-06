@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import QueryProvider from "@/components/shared/QueryProvider";
 import { AuthProvider } from "@/components/shared/AuthProvider";
-
 import { DirManager } from "@/components/shared/DirManager";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "School Management",
@@ -25,6 +25,7 @@ export default function RootLayout({
           <AuthProvider>
             <DirManager />
             {children}
+            <SpeedInsights />
           </AuthProvider>
         </QueryProvider>
       </body>
