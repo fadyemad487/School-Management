@@ -6,6 +6,15 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://school-management-production-596f.up.railway.app/api';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${apiUrl.replace(/\/$/, '')}/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -38,4 +47,3 @@ const nextConfig = {
 };
 
 export default nextConfig;
-
