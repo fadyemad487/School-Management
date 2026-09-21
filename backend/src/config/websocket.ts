@@ -1,5 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { getRedisClient, createRedisSubClient } from "./redis";
 import { env } from "./env";
 import { prisma } from "./prisma";
 import { supabaseAdmin } from "./supabase";
@@ -28,6 +30,18 @@ export function initWebSocket(httpServer: HttpServer): Server {
     },
     transports: ["websocket", "polling"]
   });
+
+  // Attach Redis adapter if Redis is available for distributed scaling across multiple servers
+  try {
+    const pubClient = getRedisClient();
+    const subClient = createRedisSubClient();
+    if (pubClient && subClient) {
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log("⚡ [Socket.IO] Redis adapter active for distributed clustering");
+    }
+  } catch (err: any) {
+    console.warn("⚠️ [Socket.IO] Using in-memory adapter:", err.message);
+  }
 
   io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token;

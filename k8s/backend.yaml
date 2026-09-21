@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: school-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5001
+        env:
+        - name: PORT
+          value: "5001"
+        - name: NODE_ENV
+          value: "production"
+        - name: REDIS_URL
+          value: "redis://redis-service:6379"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: DATABASE_URL
+        - name: DIRECT_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: DIRECT_URL
+        - name: SUPABASE_URL
+          value: "https://xbpwsdpswcxhogzaalqn.supabase.co"
+        - name: SUPABASE_ANON_KEY
+          value: "sb_publishable_R_8ep0PEq7BerXCGbeG68Q_223uP3Ox"
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SUPABASE_SERVICE_ROLE_KEY
+        - name: SUPABASE_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SUPABASE_JWT_SECRET
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 5001
+    targetPort: 5001
+  type: ClusterIP

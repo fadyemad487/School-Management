@@ -38,3 +38,7 @@ ios/Flutter/Ephemeral/
 *.msix
 *.deb
 *.rpm
+
+# Kubernetes secrets (contains sensitive credentials)
+k8s/secrets.yaml
+backend/deploy/k8s/secrets.yaml

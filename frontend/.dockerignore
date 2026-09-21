@@ -1,0 +1,9 @@
+node_modules
+.next
+.vercel
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+!.env.example
