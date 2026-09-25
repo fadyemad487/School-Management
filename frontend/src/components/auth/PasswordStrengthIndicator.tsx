@@ -1,54 +1,102 @@
 "use client";
 
-import { CheckCircle2, Circle } from "lucide-react";
+import React from "react";
+import { Check, ShieldAlert, ShieldCheck } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
-export function PasswordStrengthIndicator({ password }: { password?: string }) {
+interface PasswordStrengthIndicatorProps {
+  password?: string;
+}
+
+export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicatorProps) {
+  const { isAr } = useTranslation();
+
   if (!password) return null;
 
-  const requirements = [
-    { label: "Small letters (a-z)", met: /[a-z]/.test(password) },
-    { label: "Capital letters (A-Z)", met: /[A-Z]/.test(password) },
-    { label: "Numbers (0-9)", met: /[0-9]/.test(password) },
-    { label: "Special symbols (!@#$%)", met: /[^a-zA-Z0-9]/.test(password) }
+  const rules = [
+    { key: "min8", labelAr: "8+ أحرف", labelEn: "8+ chars", met: password.length >= 8 },
+    { key: "lower", labelAr: "حروف صغيرة a-z", labelEn: "a-z", met: /[a-z]/.test(password) },
+    { key: "upper", labelAr: "حروف كبيرة A-Z", labelEn: "A-Z", met: /[A-Z]/.test(password) },
+    { key: "num", labelAr: "أرقام 0-9", labelEn: "0-9", met: /[0-9]/.test(password) },
+    { key: "symbol", labelAr: "رموز (!@#$)", labelEn: "Symbols (!@#$)", met: /[^a-zA-Z0-9]/.test(password) },
   ];
 
-  const metCount = requirements.filter(r => r.met).length;
-  let strengthLabel = "Weak";
-  let strengthColor = "#ef4444";
-  let width = "33%";
+  const metCount = rules.filter((r) => r.met).length;
 
-  if (metCount === 3) {
-    strengthLabel = "Medium";
-    strengthColor = "#f59e0b";
-    width = "66%";
-  } else if (metCount >= 4) {
-    strengthLabel = "Strong";
-    strengthColor = "#10b981";
-    width = "100%";
+  let strengthLabelAr = "ضعيفة جداً";
+  let strengthLabelEn = "Very Weak";
+  let themeColor = "#FF5757"; // Red
+  let filledBars = 1;
+
+  if (metCount === 2) {
+    strengthLabelAr = "ضعيفة";
+    strengthLabelEn = "Weak";
+    themeColor = "#FF8A00"; // Orange
+    filledBars = 1;
+  } else if (metCount === 3) {
+    strengthLabelAr = "متوسطة";
+    strengthLabelEn = "Fair";
+    themeColor = "#FFB020"; // Yellow
+    filledBars = 2;
+  } else if (metCount === 4) {
+    strengthLabelAr = "قوية";
+    strengthLabelEn = "Strong";
+    themeColor = "#00C4CC"; // Cyan
+    filledBars = 3;
+  } else if (metCount >= 5) {
+    strengthLabelAr = "ممتازة 🔒";
+    strengthLabelEn = "Excellent 🔒";
+    themeColor = "#22B573"; // Emerald Green
+    filledBars = 4;
   }
 
   return (
-    <div className="password-strength-wrapper">
-      <div className="strength-label">
-        <span>Security Strength</span>
-        <span style={{ color: strengthColor }}>{strengthLabel}</span>
+    <div className="cv-strength-box">
+      {/* Header Row */}
+      <div className="cv-strength-header">
+        <span className="cv-strength-title">
+          {isAr ? "قوة كلمة المرور:" : "Password Strength:"}
+        </span>
+        <span
+          className="cv-strength-badge"
+          style={{
+            backgroundColor: `${themeColor}18`,
+            color: themeColor,
+            borderColor: `${themeColor}40`,
+          }}
+        >
+          {isAr ? strengthLabelAr : strengthLabelEn}
+        </span>
       </div>
-      <div className="strength-bar-container">
-        <div
-          className="strength-bar"
-          style={{ width, backgroundColor: strengthColor }}
-        />
+
+      {/* 4 Segmented Progress Bar */}
+      <div className="cv-strength-meter">
+        {[1, 2, 3, 4].map((barIndex) => (
+          <div
+            key={barIndex}
+            className="cv-strength-segment"
+            style={{
+              backgroundColor: barIndex <= filledBars ? themeColor : "#E5E7EB",
+              boxShadow: barIndex <= filledBars ? `0 2px 8px ${themeColor}40` : "none",
+            }}
+          />
+        ))}
       </div>
-      <div className="password-checklist">
-        {requirements.map((req, i) => (
-          <div key={i} className={`checklist-item ${req.met ? "met" : ""}`}>
-            {req.met ? (
-              <CheckCircle2 className="checklist-icon" size={16} />
+
+      {/* Modern Colorful Requirement Chips */}
+      <div className="cv-strength-chips">
+        {rules.map((rule) => (
+          <span
+            key={rule.key}
+            className={`cv-chip ${rule.met ? "met" : ""}`}
+          >
+            {rule.met ? (
+              <Check size={12} strokeWidth={3} className="cv-chip-check" />
             ) : (
-              <Circle className="checklist-icon" size={16} />
+              <span className="cv-chip-dot" />
             )}
-            <span>{req.label}</span>
-          </div>
+            {isAr ? rule.labelAr : rule.labelEn}
+          </span>
         ))}
       </div>
     </div>

@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: "Next-generation school management platform for modern educational institutions.",
   icons: {
     icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
 };
 
