@@ -27,8 +27,8 @@ export function AuthShell({
         <aside className="auth-hero-premium">
           <div className="auth-logo-premium" style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "40px" }}>
             <BackButton className="auth-logo-back" />
-            <div style={{ background: "var(--gradient-primary)", padding: "10px", borderRadius: "12px" }}><GraduationCap size={24} color="#fff" /></div>
-            <h3 style={{ fontSize: "24px", color: "#fff", fontWeight: 800 }}>EduControl</h3>
+            <div style={{ background: "linear-gradient(135deg, #4338CA, #6D28D9)", padding: "10px", borderRadius: "12px" }}><GraduationCap size={24} color="#FFFFFF" /></div>
+            <h3 style={{ fontSize: "24px", color: "#171533", fontWeight: 800 }}>EduControl</h3>
           </div>
           <h1>{t('auth_welcome_title')}</h1>
           <p>{t('auth_welcome_desc')}</p>
