@@ -5,18 +5,13 @@ export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api"
 });
 
-// Attach Supabase auth token and disable browser caching to keep data 100% fresh
+// Attach the current Supabase auth token to API requests.
 api.interceptors.request.use(async (config) => {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  // Prevent browser caching on localhost during development/navigation
-  config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
-  config.headers["Pragma"] = "no-cache";
-  config.headers["Expires"] = "0";
 
   return config;
 });

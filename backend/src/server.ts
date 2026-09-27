@@ -42,7 +42,15 @@ app.use(cors({
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-XSRF-TOKEN", "X-CSRF-TOKEN"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cache-Control",
+    "Pragma",
+    "Expires",
+    "X-XSRF-TOKEN",
+    "X-CSRF-TOKEN",
+  ],
   exposedHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
   maxAge: 86400, // 24 hours
 }));
