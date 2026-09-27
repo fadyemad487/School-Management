@@ -8,7 +8,7 @@ import styles from "./onboarding.module.css";
 
 const onboardingKey = "edu_registration_onboarding";
 const successDuration = 6500;
-const preparationDuration = 25000;
+const preparationDuration = 30000;
 
 type OnboardingState = { startedAt: number };
 

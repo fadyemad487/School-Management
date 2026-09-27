@@ -1547,10 +1547,10 @@ ul {
 
 .cv-social-btn-success,
 .cv-social-btn-success:hover {
-  color: #117a51;
-  border-color: #48bd8c;
-  background: #eefbf5;
-  box-shadow: 0 4px 14px rgba(34, 181, 115, 0.12);
+  color: #075f3d;
+  border-color: #15915d;
+  background: #e5f8ee;
+  box-shadow: 0 4px 14px rgba(21, 145, 93, 0.16);
   transform: none;
   animation: cvOauthVerified 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
