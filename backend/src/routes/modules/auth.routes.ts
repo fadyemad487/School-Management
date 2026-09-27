@@ -9,8 +9,13 @@ const router = Router();
 // Public routes
 const loginLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: "Too many sign-in attempts. Please try again in a few minutes."
+  max: 15,
+  message: "Too many sign-in attempts. Please try again in a few minutes.",
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => {
+    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+    return `${req.ip || "unknown"}:${email}`;
+  }
 });
 const registrationLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000,
