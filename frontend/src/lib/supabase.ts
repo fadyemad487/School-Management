@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, processLock } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -24,6 +24,10 @@ export const supabase = createClient(safeUrl, safeKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    // sessionStorage is isolated per browser tab. A process-local lock therefore
+    // protects concurrent React/API reads without competing for a browser-wide
+    // Navigator Lock held by another Supabase operation.
+    lock: processLock,
     lockAcquireTimeout: 10_000,
     storage: typeof window === "undefined" ? undefined : window.sessionStorage,
   },

@@ -292,7 +292,7 @@ export function AnalyticsHome() {
         <div className="dash-chart-card">
           <h3 className="dash-chart-card__title">{t("chart_attendance_30d")}</h3>
           <div className="dash-chart-card__body">
-            <ResponsiveContainer width="100%" height="100%" minHeight={280}>
+            <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={280}>
               <AreaChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="attFill" x1="0" y1="0" x2="0" y2="1">
@@ -316,7 +316,7 @@ export function AnalyticsHome() {
         <div className="dash-chart-card">
           <h3 className="dash-chart-card__title">{t("chart_monthly_revenue")}</h3>
           <div className="dash-chart-card__body">
-            <ResponsiveContainer width="100%" height="100%" minHeight={280}>
+            <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={280}>
               <BarChart data={revenue} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--dash-chart-grid)" />
                 <XAxis dataKey="label" tick={{ fill: "var(--dash-chart-axis)", fontSize: 11 }} angle={-25} textAnchor="end" height={56} />
@@ -335,7 +335,7 @@ export function AnalyticsHome() {
           <h3 className="dash-chart-card__title">{t("chart_class_success")}</h3>
           <p className="dash-chart-card__note">{t("chart_class_footnote")}</p>
           <div className="dash-chart-card__body dash-chart-card__body--tall">
-            <ResponsiveContainer width="100%" height="100%" minHeight={320}>
+            <ResponsiveContainer width="100%" height={360} minWidth={1} minHeight={320}>
               <BarChart
                 layout="vertical"
                 data={classRows}
