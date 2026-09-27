@@ -3,6 +3,7 @@ import { supabaseAdmin } from "../config/supabase";
 import { prisma } from "../config/prisma";
 import { env } from "../config/env";
 import jwt from "jsonwebtoken";
+import { logger } from "../utils/logger";
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
@@ -46,7 +47,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !authUser) {
-      console.error("Supabase Auth Error:", authError?.message);
+      logger.authEvent("failed", undefined, req.ip);
+      logger.error("Supabase Auth Error", authError);
       res.status(401).json({ success: false, message: "Unauthorized: Invalid or expired token" });
       return;
     }
@@ -108,7 +110,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
     next();
   } catch (err) {
-    console.error("Middleware Error:", err);
+    logger.error("Authentication middleware error", err as Error, { ip: req.ip });
     res.status(401).json({ success: false, message: "Unauthorized: System authentication error" });
   }
 }

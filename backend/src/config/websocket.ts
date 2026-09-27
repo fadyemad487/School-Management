@@ -6,6 +6,7 @@ import { env } from "./env";
 import { prisma } from "./prisma";
 import { supabaseAdmin } from "./supabase";
 import jwt from "jsonwebtoken";
+import { logger } from "../utils/logger";
 
 let io: Server;
 
@@ -37,10 +38,10 @@ export function initWebSocket(httpServer: HttpServer): Server {
     const subClient = createRedisSubClient();
     if (pubClient && subClient) {
       io.adapter(createAdapter(pubClient, subClient));
-      console.log("⚡ [Socket.IO] Redis adapter active for distributed clustering");
+      logger.info("Socket.IO Redis adapter active for distributed clustering");
     }
   } catch (err: any) {
-    console.warn("⚠️ [Socket.IO] Using in-memory adapter:", err.message);
+    logger.warn("Socket.IO using in-memory adapter", { reason: err.message });
   }
 
   io.use(async (socket, next) => {
@@ -90,22 +91,21 @@ export function initWebSocket(httpServer: HttpServer): Server {
     if (userRole === "SUPER_ADMIN") {
       // SUPER_ADMIN joins a special room to receive all events
       socket.join("super_admin");
-      console.log(`[WS] SUPER_ADMIN connected: ${socket.id}`);
+      logger.wsConnection(socket.id, null, "SUPER_ADMIN");
     } else if (schoolId) {
       // Regular users join their school's room
       socket.join(`school:${schoolId}`);
-      console.log(`[WS] School ${schoolId} connected: ${socket.id}`);
+      logger.wsConnection(socket.id, schoolId, userRole);
     }
 
     if (userId) {
       // Join default credential room for session tracking/logout
       socket.join(`user:${userId}`);
-      console.log(`[WS] User credential room joined: user:${userId}`);
-
+      logger.debug("User credential room joined", { userId, socketId: socket.id });
     }
 
     socket.on("disconnect", () => {
-      console.log(`[WS] Disconnected: ${socket.id}`);
+      logger.wsDisconnection(socket.id);
     });
   });
 

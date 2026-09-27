@@ -9,6 +9,7 @@ import { apiLimiter } from "./middlewares/rateLimit";
 import { initWebSocket } from "./config/websocket";
 import { startOverdueChecker } from "./cron/checkOverdueInvoices";
 import routes from "./routes";
+import { logger } from "./utils/logger";
 
 const app = express();
 const httpServer = createServer(app);
@@ -23,25 +24,42 @@ initWebSocket(httpServer);
 
 app.use(helmet({
   hsts: env.nodeEnv === "production"
-    ? { maxAge: 31_536_000, includeSubDomains: true, preload: true }
+    ? { maxAge: 63072000, includeSubDomains: true, preload: true }
     : false,
-  referrerPolicy: { policy: "no-referrer" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  frameguard: { action: "deny" },
+  noSniff: true,
+  xssFilter: true,
 }));
 app.use(cors({
   origin: (origin, callback) => {
     if (env.isOriginAllowed(origin)) {
       callback(null, true);
     } else {
+      logger.security("CORS origin blocked", { origin, ip: "unknown" });
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-XSRF-TOKEN", "X-CSRF-TOKEN"],
+  exposedHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
+  maxAge: 86400, // 24 hours
 }));
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ limit: "5mb", extended: true }));
-app.use(morgan("dev"));
 
-app.use("/api", apiLimiter, routes);
+app.use(express.json({
+  limit: "1mb",
+}));
+app.use(express.urlencoded({ limit: "1mb", extended: true }));
+
+if (env.nodeEnv === "development") {
+  app.use(morgan("dev"));
+}
+
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, private");
+  next();
+}, apiLimiter, routes);
 
 app.get("/", (_req, res) => {
   res.json({ 
@@ -56,9 +74,18 @@ app.get("/", (_req, res) => {
 app.use(errorHandler);
 
 httpServer.listen(env.port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server running on http://localhost:${env.port}`);
-  console.log(`WebSocket ready on ws://localhost:${env.port}`);
+  logger.info("Server started successfully", {
+    port: env.port,
+    environment: env.nodeEnv,
+    websocket: "enabled",
+    security: "enhanced",
+  });
+
+  if (env.nodeEnv === "development") {
+    console.log(`\n🚀 Server running on http://localhost:${env.port}`);
+    console.log(`🔌 WebSocket ready on ws://localhost:${env.port}`);
+    console.log(`🔒 Security: Enhanced mode with 7 protection layers\n`);
+  }
 
   // Start automatic overdue invoice checker
   startOverdueChecker();

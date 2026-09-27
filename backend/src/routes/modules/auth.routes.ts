@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, register, checkSchoolId, checkSchoolName, checkSchoolEmail, getMe, handleWebhook, mobileLogin, mobileSocialLogin, changeMobilePassword } from "../../controllers/auth.controller";
+import { login, register, checkSchoolId, checkSchoolName, checkSchoolEmail, getMe, mobileLogin, mobileSocialLogin, changeMobilePassword } from "../../controllers/auth.controller";
 import { requireAuth } from "../../middlewares/auth";
 import { requireMobileAuth } from "../../middlewares/mobileAuth";
 import { createRateLimiter } from "../../middlewares/rateLimit";
@@ -17,16 +17,20 @@ const registrationLimiter = createRateLimiter({
   max: 5,
   message: "Too many registration attempts. Please try again later."
 });
+const availabilityLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: "Too many availability checks. Please try again in a few minutes."
+});
 
 router.post("/login", loginLimiter, login);
 router.post("/mobile/login", loginLimiter, mobileLogin);
 router.post("/mobile/social-login", loginLimiter, mobileSocialLogin);
 router.post("/register", registrationLimiter, register);
 router.post("/register-school", registrationLimiter, register);
-router.get("/check-school-id/:code", checkSchoolId);
-router.get("/check-school-name/:name", checkSchoolName);
-router.get("/check-school-email/:email", checkSchoolEmail);
-router.post("/webhook", handleWebhook);
+router.get("/check-school-id/:code", availabilityLimiter, checkSchoolId);
+router.get("/check-school-name/:name", availabilityLimiter, checkSchoolName);
+router.get("/check-school-email/:email", availabilityLimiter, checkSchoolEmail);
 
 // Protected routes
 router.get("/me", requireAuth, getMe);
