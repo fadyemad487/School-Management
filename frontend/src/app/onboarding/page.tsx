@@ -7,8 +7,8 @@ import { useTranslation } from "@/lib/i18n";
 import styles from "./onboarding.module.css";
 
 const onboardingKey = "edu_registration_onboarding";
-const successDuration = 4200;
-const preparationDuration = 14000;
+const successDuration = 6500;
+const preparationDuration = 25000;
 
 type OnboardingState = { startedAt: number };
 
@@ -60,7 +60,7 @@ export default function OnboardingPage() {
     <main className={styles.page} dir={isAr ? "rtl" : "ltr"}>
       <section className={styles.content} aria-live="polite">
         {!isPreparing ? (
-          <>
+          <div className={styles.phase}>
             <DotLottieReact
               src="/animations/success.lottie"
               autoplay
@@ -73,9 +73,9 @@ export default function OnboardingPage() {
             <p className={styles.description}>
               {isAr ? "نجهز لوحة التحكم الخاصة بك الآن." : "We are setting up your dashboard now."}
             </p>
-          </>
+          </div>
         ) : (
-          <>
+          <div className={styles.phase}>
             <p className={styles.eyebrow}>{isAr ? "جاري الإعداد" : "Preparing your workspace"}</p>
             <h1>{isAr ? "لوحة التحكم تصبح جاهزة" : "Your dashboard is coming to life"}</h1>
             <p className={styles.description}>
@@ -98,7 +98,7 @@ export default function OnboardingPage() {
               </div>
               <p className={styles.progressLabel}>{Math.round(progress)}%</p>
             </div>
-          </>
+          </div>
         )}
       </section>
     </main>

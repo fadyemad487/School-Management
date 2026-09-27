@@ -1545,6 +1545,15 @@ ul {
   transform: translateY(-2px);
 }
 
+.cv-social-btn-success,
+.cv-social-btn-success:hover {
+  color: #117a51;
+  border-color: #48bd8c;
+  background: #eefbf5;
+  box-shadow: 0 4px 14px rgba(34, 181, 115, 0.12);
+  transform: none;
+}
+
 .cv-social-btn:disabled {
   opacity: 0.5;
   pointer-events: none;
@@ -3158,6 +3167,13 @@ ul {
 .cv-dark .cv-social-btn:hover {
   background: #232B3B !important;
   border-color: var(--cv-purple) !important;
+}
+
+.cv-dark .cv-social-btn-success,
+.cv-dark .cv-social-btn-success:hover {
+  color: #73ddb0 !important;
+  border-color: #277c5a !important;
+  background: rgba(34, 181, 115, 0.14) !important;
 }
 
 .cv-dark .cv-field label {

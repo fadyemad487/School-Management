@@ -68,6 +68,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+  const [oauthVerified, setOauthVerified] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -91,6 +92,72 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
     setSuccessMsg("");
     setShowEmailForm(false);
   }, [initialMode, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || typeof window === "undefined") return;
+
+    const oauthProvider = sessionStorage.getItem("oauth_in_progress");
+    if (!oauthProvider) return;
+
+    let active = true;
+    let redirectTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const verifyOAuthAccount = async () => {
+      setOauthLoading(oauthProvider);
+      setGeneralError("");
+
+      try {
+        let session = (await supabase.auth.getSession()).data.session;
+        for (let attempt = 0; !session && attempt < 8; attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          session = (await supabase.auth.getSession()).data.session;
+        }
+        if (!session) {
+          throw new Error("NO_SESSION");
+        }
+
+        const { data } = await api.get("/auth/me");
+        if (!active || !data?.data) return;
+
+        const { data: supabaseUser } = await supabase.auth.getUser();
+        setAuthUser({
+          id: data.data.id,
+          email: data.data.email,
+          fullName: data.data.fullName,
+          schoolId: data.data.school?.id,
+          role: data.data.role,
+          school: data.data.school,
+          avatarUrl: supabaseUser.user?.user_metadata?.custom_avatar_url || supabaseUser.user?.user_metadata?.avatar_url,
+        });
+        setOauthVerified(oauthProvider);
+        setSuccessMsg(isAr ? "تم التحقق من حسابك. جارٍ فتح لوحة التحكم..." : "Account verified. Opening your dashboard...");
+        sessionStorage.removeItem("oauth_in_progress");
+        redirectTimer = setTimeout(() => {
+          if (!active) return;
+          onClose();
+          router.replace("/dashboard");
+        }, 1150);
+      } catch {
+        if (!active) return;
+        await supabase.auth.signOut();
+        sessionStorage.removeItem("oauth_in_progress");
+        setOauthVerified(null);
+        setGeneralError(
+          isAr
+            ? "حساب Google هذا غير مرتبط بحساب EduControl مسجل. سجّل الدخول بالبريد الذي أنشأت به المدرسة، أو أنشئ مدرسة جديدة أولاً."
+            : "This Google account is not linked to a registered EduControl school. Sign in with your school email, or register your school first."
+        );
+      } finally {
+        if (active) setOauthLoading(null);
+      }
+    };
+
+    verifyOAuthAccount();
+    return () => {
+      active = false;
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
+  }, [isAr, isOpen, onClose, router, setAuthUser]);
 
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -345,10 +412,11 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
   // Handle OAuth Sign In
   const handleOAuthSignIn = async (provider: 'google' | 'facebook') => {
     setOauthLoading(provider);
+    setOauthVerified(null);
     setGeneralError("");
     try {
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("oauth_in_progress", "true");
+        sessionStorage.setItem("oauth_in_progress", provider);
       }
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -414,12 +482,18 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
             <div className="cv-social-group">
               <button
                 type="button"
-                className="cv-social-btn"
+                className={`cv-social-btn ${oauthVerified === "google" ? "cv-social-btn-success" : ""}`}
                 onClick={() => handleOAuthSignIn('google')}
                 disabled={!!oauthLoading}
               >
-                <GoogleIcon />
-                <span>{isAr ? "المتابعة باستخدام Google" : "Continue with Google"}</span>
+                {oauthVerified === "google" ? <CheckCircle2 size={20} /> : <GoogleIcon />}
+                <span>
+                  {oauthVerified === "google"
+                    ? (isAr ? "تم التحقق من الحساب" : "Account verified")
+                    : oauthLoading === "google"
+                      ? (isAr ? "جارٍ التحقق من الحساب..." : "Verifying your account...")
+                      : (isAr ? "المتابعة باستخدام Google" : "Continue with Google")}
+                </span>
               </button>
 
               <button
