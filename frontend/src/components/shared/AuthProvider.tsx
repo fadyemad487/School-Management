@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getCurrentSession, supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { clearRememberedSession, getRememberedSession, syncRememberedSession } from "@/lib/rememberedSession";
@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
   const [loading, setLoading] = useState(false);
+  const profileRequest = useRef<Promise<AuthUser | null> | null>(null);
   const router = useRouter();
 
   const setAuthUser = useCallback((newUser: AuthUser) => {
@@ -61,11 +62,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   const fetchProfile = useCallback(async (): Promise<AuthUser | null> => {
+    if (profileRequest.current) return profileRequest.current;
+
+    const request = (async (): Promise<AuthUser | null> => {
     setLoading(true);
     try {
       const { data } = await api.get("/auth/me");
       if (data.success) {
-        const { data: { user: sbUser } } = await supabase.auth.getUser();
+        const session = await getCurrentSession();
         const userData: AuthUser = {
           id: data.data.id,
           email: data.data.email,
@@ -73,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           schoolId: data.data.school?.id,
           role: data.data.role,
           school: data.data.school,
-          avatarUrl: sbUser?.user_metadata?.custom_avatar_url || sbUser?.user_metadata?.avatar_url
+          avatarUrl: session?.user.user_metadata?.custom_avatar_url || session?.user.user_metadata?.avatar_url
         };
         setUser(userData);
         if (typeof window !== "undefined") {
@@ -81,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             sessionStorage.setItem("edu_auth_user", JSON.stringify(userData));
           } catch (_) {}
         }
-        const accessToken = (await supabase.auth.getSession()).data.session?.access_token;
+        const accessToken = (await getCurrentSession())?.access_token;
         if (accessToken) connectSocket(accessToken);
         return userData;
       }
@@ -104,6 +108,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
+    })();
+
+    profileRequest.current = request;
+    try {
+      return await request;
+    } finally {
+      profileRequest.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -113,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const initializeSession = async () => {
-      let { data: { session } } = await supabase.auth.getSession();
+      let session = await getCurrentSession();
 
       if (!session) {
         const remembered = getRememberedSession();

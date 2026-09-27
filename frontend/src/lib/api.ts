@@ -1,5 +1,5 @@
 import axios from "axios";
-import { supabase } from "./supabase";
+import { getCurrentSession, supabase } from "./supabase";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api"
@@ -7,8 +7,8 @@ export const api = axios.create({
 
 // Attach the current Supabase auth token to API requests.
 api.interceptors.request.use(async (config) => {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const session = await getCurrentSession();
+  const token = session?.access_token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

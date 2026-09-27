@@ -24,6 +24,27 @@ export const supabase = createClient(safeUrl, safeKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    lockAcquireTimeout: 10_000,
     storage: typeof window === "undefined" ? undefined : window.sessionStorage,
   },
 });
+
+let sessionRequest: Promise<Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]> | null = null;
+
+/**
+ * Serializes simultaneous session reads. Supabase uses the browser LockManager
+ * internally; a single shared read prevents competing React effects and API
+ * requests from trying to acquire the same auth lock at once.
+ */
+export function getCurrentSession() {
+  if (!sessionRequest) {
+    sessionRequest = supabase.auth
+      .getSession()
+      .then(({ data }) => data.session)
+      .finally(() => {
+        sessionRequest = null;
+      });
+  }
+
+  return sessionRequest;
+}

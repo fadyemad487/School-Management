@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { X, AlertCircle, CheckCircle2, Mail, ArrowLeft, ArrowRight } from "lucide-react";
 
 import { api, extractApiError } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
+import { getCurrentSession, supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
 import { GlassPasswordInput } from "@/components/auth/GlassPasswordInput";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
@@ -112,10 +112,10 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
       setGeneralError("");
 
       try {
-        let session = (await supabase.auth.getSession()).data.session;
+        let session = await getCurrentSession();
         for (let attempt = 0; !session && attempt < 8; attempt += 1) {
           await new Promise((resolve) => setTimeout(resolve, 250));
-          session = (await supabase.auth.getSession()).data.session;
+          session = await getCurrentSession();
         }
         if (!session) {
           throw new Error("NO_SESSION");
@@ -124,7 +124,6 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
         const { data } = await api.get("/auth/me");
         if (!active || !data?.data) return;
 
-        const { data: supabaseUser } = await supabase.auth.getUser();
         setAuthUser({
           id: data.data.id,
           email: data.data.email,
@@ -132,7 +131,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
           schoolId: data.data.school?.id,
           role: data.data.role,
           school: data.data.school,
-          avatarUrl: supabaseUser.user?.user_metadata?.custom_avatar_url || supabaseUser.user?.user_metadata?.avatar_url,
+          avatarUrl: session.user.user_metadata?.custom_avatar_url || session.user.user_metadata?.avatar_url,
         });
         setOauthVerified(oauthProvider);
         sessionStorage.removeItem("oauth_in_progress");
