@@ -1552,6 +1552,19 @@ ul {
   background: #eefbf5;
   box-shadow: 0 4px 14px rgba(34, 181, 115, 0.12);
   transform: none;
+  animation: cvOauthVerified 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cvOauthVerified {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .cv-social-btn:disabled {

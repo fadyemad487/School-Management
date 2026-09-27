@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -85,6 +85,11 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
 
   const [isEmailValid, setIsEmailValid] = useState<boolean | null>(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     setMode(initialMode);
@@ -130,13 +135,12 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
           avatarUrl: supabaseUser.user?.user_metadata?.custom_avatar_url || supabaseUser.user?.user_metadata?.avatar_url,
         });
         setOauthVerified(oauthProvider);
-        setSuccessMsg(isAr ? "تم التحقق من حسابك. جارٍ فتح لوحة التحكم..." : "Account verified. Opening your dashboard...");
         sessionStorage.removeItem("oauth_in_progress");
         redirectTimer = setTimeout(() => {
           if (!active) return;
-          onClose();
+          onCloseRef.current();
           router.replace("/dashboard");
-        }, 1150);
+        }, 900);
       } catch {
         if (!active) return;
         await supabase.auth.signOut();
@@ -157,7 +161,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
       active = false;
       if (redirectTimer) clearTimeout(redirectTimer);
     };
-  }, [isAr, isOpen, onClose, router, setAuthUser]);
+  }, [isAr, isOpen, router, setAuthUser]);
 
   // Prevent background scroll when modal is open
   useEffect(() => {
