@@ -141,7 +141,7 @@ export default function LandingPage({ initialAuthOpen = false, initialAuthMode =
             </div>
             <div className="cv-nav-item"><a href="#showcase">{isAr ? "شغل النظام" : "How it works"}</a></div>
             <div className="cv-nav-item"><a href="#voices">{isAr ? "آراء المدارس" : "Reviews"}</a></div>
-            <div className="cv-nav-item"><a href="#footer">{isAr ? "تواصل معنا" : "Contact"}</a></div>
+            <div className="cv-nav-item"><Link href="/contact">{isAr ? "تواصل معنا" : "Contact"}</Link></div>
           </nav>
 
           <div className="cv-nav-actions">
@@ -176,7 +176,7 @@ export default function LandingPage({ initialAuthOpen = false, initialAuthMode =
             <a className="hv2" href="#modules" onClick={() => setDrawerOpen(false)}>{isAr ? "المميزات" : "Features"}</a>
             <a className="hv2" href="#showcase" onClick={() => setDrawerOpen(false)}>{isAr ? "شغل النظام" : "How it works"}</a>
             <a className="hv2" href="#voices" onClick={() => setDrawerOpen(false)}>{isAr ? "آراء المدارس" : "Reviews"}</a>
-            <a className="hv2" href="#footer" onClick={() => setDrawerOpen(false)}>{isAr ? "تواصل معنا" : "Contact"}</a>
+            <Link className="hv2" href="/contact" onClick={() => setDrawerOpen(false)}>{isAr ? "تواصل معنا" : "Contact"}</Link>
           </div>
 
           <div className="vd-drawer-row">
@@ -441,7 +441,7 @@ export default function LandingPage({ initialAuthOpen = false, initialAuthMode =
               </div>
               <div className="cv-foot-col">
                 <h4>{isAr ? "الدعم" : "Support"}</h4>
-                <a href="#">{isAr ? "تواصل معنا" : "Contact us"}</a>
+                <Link href="/contact">{isAr ? "تواصل معنا" : "Contact us"}</Link>
               </div>
             </div>
           </div>

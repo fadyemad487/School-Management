@@ -2212,6 +2212,151 @@ ul {
   opacity: 0.8;
 }
 
+/* ── Terms & Conditions modal ── */
+.cv-policy-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(23, 32, 51, 0.48);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: cv-policy-fade-in 160ms ease-out;
+}
+
+.cv-policy-dialog {
+  width: min(100%, 500px);
+  position: relative;
+  padding: 34px;
+  border: 1px solid #e4e9f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--cv-ink);
+  box-shadow: 0 24px 70px rgba(23, 32, 51, 0.24);
+  animation: cv-policy-rise 180ms ease-out;
+}
+
+.cv-policy-close {
+  width: 34px;
+  height: 34px;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #e4e9f0;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #667085;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+[dir="rtl"] .cv-policy-close {
+  right: auto;
+  left: 16px;
+}
+
+.cv-policy-close:hover {
+  border-color: #b8c2d0;
+  background: #f5f7fa;
+  color: var(--cv-ink);
+}
+
+.cv-policy-close:focus-visible,
+.cv-policy-accept:focus-visible {
+  outline: 3px solid rgba(0, 196, 204, 0.45);
+  outline-offset: 3px;
+}
+
+.cv-policy-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  background: rgba(125, 42, 232, 0.1);
+  color: #7434e8;
+}
+
+.cv-policy-dialog h2 {
+  margin: 0;
+  color: var(--cv-ink);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.cv-policy-intro {
+  margin: 10px 0 22px;
+  color: var(--cv-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.cv-policy-list {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e8ecf2;
+  border-radius: 7px;
+  background: #f8fafc;
+}
+
+.cv-policy-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #475467;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.cv-policy-item svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #16a37d;
+}
+
+.cv-policy-accept {
+  width: 100%;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--cv-grad);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(125, 42, 232, 0.28);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.cv-policy-accept:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(125, 42, 232, 0.36);
+}
+
+@keyframes cv-policy-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cv-policy-rise {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ── Graphic Panel (Right Side) ── */
 /* ── Graphic Panel (Right Side: Canva Rainbow Arch Artwork) ── */
 .cv-modal-right {
@@ -2957,6 +3102,51 @@ ul {
 .cv-dark .cv-modal-close:hover {
   background: #232B3B !important;
   border-color: #FFFFFF !important;
+}
+
+.cv-dark .cv-policy-backdrop {
+  background: rgba(3, 7, 18, 0.68);
+}
+
+.cv-dark .cv-policy-dialog {
+  border-color: #2b3344;
+  background: #141923;
+  color: #ffffff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+.cv-dark .cv-policy-close {
+  border-color: #2b3344;
+  background: #1b212d;
+  color: #cbd5e1;
+}
+
+.cv-dark .cv-policy-close:hover {
+  border-color: #46546b;
+  background: #232b3b;
+  color: #ffffff;
+}
+
+.cv-dark .cv-policy-icon {
+  background: rgba(125, 42, 232, 0.22);
+  color: #c495ff;
+}
+
+.cv-dark .cv-policy-dialog h2 {
+  color: #ffffff;
+}
+
+.cv-dark .cv-policy-intro {
+  color: #9ea8b6;
+}
+
+.cv-dark .cv-policy-list {
+  border-color: #2b3344;
+  background: #1b212d;
+}
+
+.cv-dark .cv-policy-item {
+  color: #d7deea;
 }
 
 .cv-dark .cv-social-btn {

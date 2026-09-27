@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
+import { clearRememberedSession, getRememberedSession, syncRememberedSession } from "@/lib/rememberedSession";
 
 export type AuthUser = { id: string; email: string | undefined; fullName: string; schoolId?: string | null; role?: string; school?: any; avatarUrl?: string };
 
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async (reason?: string) => {
     await supabase.auth.signOut();
     setUser(null);
+    clearRememberedSession();
     if (typeof window !== "undefined") {
       try {
         sessionStorage.removeItem("edu_auth_user");
@@ -95,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (_) {}
       }
       if (err.response?.status === 401) {
+        clearRememberedSession();
         await supabase.auth.signOut();
       }
       return null;
@@ -109,26 +112,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetchProfile();
-      } else {
-        setUser(null);
-        if (typeof window !== "undefined") {
-          try {
-            sessionStorage.removeItem("edu_auth_user");
-          } catch (_) {}
+    const initializeSession = async () => {
+      let { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        const remembered = getRememberedSession();
+        if (remembered) {
+          const { data, error } = await supabase.auth.setSession(remembered);
+          if (!error) session = data.session;
+          else clearRememberedSession();
         }
-        setLoading(false);
       }
-    });
+
+      if (session) {
+        syncRememberedSession(session);
+        await fetchProfile();
+        return;
+      }
+
+      setUser(null);
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem("edu_auth_user");
+        } catch (_) {}
+      }
+      setLoading(false);
+    };
+
+    initializeSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
+      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+        syncRememberedSession(session);
         fetchProfile();
       } else if (event === "SIGNED_OUT") {
         setUser(null);
+        clearRememberedSession();
         if (typeof window !== "undefined") {
           try {
             sessionStorage.removeItem("edu_auth_user");

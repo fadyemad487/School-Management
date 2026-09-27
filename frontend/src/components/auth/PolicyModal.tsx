@@ -1,45 +1,65 @@
 "use client";
 
-import { X, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ShieldCheck, X } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
-export function PolicyModal({ isOpen, onClose, onAccept }: { isOpen: boolean; onClose: () => void; onAccept?: () => void }) {
-  const { t } = useTranslation();
+export function PolicyModal({
+  isOpen,
+  onClose,
+  onAccept,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onAccept?: () => void;
+}) {
+  const { t, isAr } = useTranslation();
   if (!isOpen) return null;
+
+  const accept = () => {
+    onAccept?.();
+    onClose();
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-glass" onClick={e => e.stopPropagation()}>
-        <button className="modal-close-btn" onClick={onClose}><X size={20} /></button>
-        <div className="modal-icon-header">
-          <ShieldCheck size={40} color="var(--primary-light)" />
-        </div>
-        <h2 style={{ textAlign: "center", marginBottom: "12px", fontSize: "24px", fontWeight: 800 }}>{t('policy_title')}</h2>
-        <p className="modal-intro">{t('policy_intro')}</p>
-        <div className="policy-list">
-          <div className="policy-item">
-            <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0 }} />
-            <span>{t('policy_item1')}</span>
-          </div>
-          <div className="policy-item">
-            <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0 }} />
-            <span>{t('policy_item2')}</span>
-          </div>
-          <div className="policy-item">
-            <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0 }} />
-            <span>{t('policy_item3')}</span>
-          </div>
-        </div>
-        <button 
-          className="btn primary lg" 
-          style={{ width: "100%", marginTop: "32px", borderRadius: "12px" }} 
-          onClick={() => {
-            if (onAccept) onAccept();
-            onClose();
-          }}
-        >
-          {t('btn_close')}
+    <div className="cv-policy-backdrop" onClick={onClose}>
+      <section
+        className="cv-policy-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="policy-title"
+        onClick={(event) => event.stopPropagation()}
+        dir={isAr ? "rtl" : "ltr"}
+      >
+        <button type="button" className="cv-policy-close" onClick={onClose} aria-label={isAr ? "إغلاق" : "Close"}>
+          <X size={20} />
         </button>
-      </div>
+
+        <div className="cv-policy-icon" aria-hidden="true">
+          <ShieldCheck size={30} strokeWidth={2.1} />
+        </div>
+        <h2 id="policy-title">{t("policy_title")}</h2>
+        <p className="cv-policy-intro">{t("policy_intro")}</p>
+
+        <div className="cv-policy-list">
+          <div className="cv-policy-item">
+            <CheckCircle2 size={18} aria-hidden="true" />
+            <span>{t("policy_item1")}</span>
+          </div>
+          <div className="cv-policy-item">
+            <CheckCircle2 size={18} aria-hidden="true" />
+            <span>{t("policy_item2")}</span>
+          </div>
+          <div className="cv-policy-item">
+            <CheckCircle2 size={18} aria-hidden="true" />
+            <span>{t("policy_item3")}</span>
+          </div>
+        </div>
+
+        <button type="button" className="cv-policy-accept" onClick={accept}>
+          <CheckCircle2 size={18} aria-hidden="true" />
+          {isAr ? "أوافق وأتابع" : "I agree and continue"}
+        </button>
+      </section>
     </div>
   );
 }

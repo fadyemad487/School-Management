@@ -22,6 +22,7 @@ router.post("/login", loginLimiter, login);
 router.post("/mobile/login", loginLimiter, mobileLogin);
 router.post("/mobile/social-login", loginLimiter, mobileSocialLogin);
 router.post("/register", registrationLimiter, register);
+router.post("/register-school", registrationLimiter, register);
 router.get("/check-school-id/:code", checkSchoolId);
 router.get("/check-school-name/:name", checkSchoolName);
 router.get("/check-school-email/:email", checkSchoolEmail);

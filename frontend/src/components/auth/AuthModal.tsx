@@ -15,14 +15,7 @@ import { GlassPasswordInput } from "@/components/auth/GlassPasswordInput";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { AnimatedVectorHub } from "@/components/auth/AnimatedVectorHub";
 import { useAuth } from "@/components/shared/AuthProvider";
-
-/* ── SVG Icons ── */
-const BrandIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
-    <path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round"/>
-    <path d="M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
+import { persistRememberedSession } from "@/lib/rememberedSession";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="20" height="20">
@@ -117,6 +110,15 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
     defaultValues: { email: "", password: "", rememberMe: false }
   });
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const rememberedEmail = localStorage.getItem("edu_remembered_email");
+    if (rememberedEmail) {
+      loginForm.setValue("email", rememberedEmail);
+      loginForm.setValue("rememberMe", true);
+    }
+  }, [loginForm]);
+
   // Register Form
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -133,6 +135,17 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
   const registerName = registerForm.watch("name");
   const registerEmail = registerForm.watch("email");
   const registerPassword = registerForm.watch("password");
+  const registerAgreeError = registerForm.formState.errors.agree?.message;
+
+  const switchMode = (nextMode: "login" | "register" | "forgot") => {
+    setMode(nextMode);
+    setShowEmailForm(nextMode !== "forgot");
+    setGeneralError("");
+    setSuccessMsg("");
+    if (typeof window !== "undefined" && window.location.hash) {
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+  };
 
   // Real-time School ID check
   useEffect(() => {
@@ -201,6 +214,9 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
     setGeneralError("");
     setIsLoading(true);
 
+    if (values.rememberMe) localStorage.setItem("edu_remembered_email", values.email);
+    else localStorage.removeItem("edu_remembered_email");
+
     try {
       const { data: loginData } = await api.post("/auth/login", {
         email: values.email,
@@ -220,10 +236,12 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
       }
 
       if (loginData.data?.session) {
-        await supabase.auth.setSession({
+        const { data: sessionData, error } = await supabase.auth.setSession({
           access_token: loginData.data.session.access_token,
           refresh_token: loginData.data.session.refresh_token
         });
+        if (error) throw error;
+        if (sessionData.session) persistRememberedSession(sessionData.session, Boolean(values.rememberMe));
       }
 
       onClose();
@@ -257,26 +275,24 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
     setIsLoading(true);
 
     try {
-      const { data } = await api.post("/auth/register-school", {
+      const { data } = await api.post("/auth/register", {
         name: values.name,
         email: values.email,
         password: values.password,
         schoolId: values.schoolId
       });
 
-      setSuccessMsg(isAr ? "تم إنشاء الحساب بنجاح! جاري التوجيه..." : "Account created successfully! Redirecting...");
-
       if (data.data?.session) {
-        await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: data.data.session.access_token,
           refresh_token: data.data.session.refresh_token
         });
+        if (error) throw error;
       }
 
-      setTimeout(() => {
-        onClose();
-        router.push("/dashboard");
-      }, 1500);
+      sessionStorage.setItem("edu_registration_onboarding", JSON.stringify({ startedAt: Date.now() }));
+      onClose();
+      router.push("/onboarding");
     } catch (err: unknown) {
       const apiErr = extractApiError(err);
       const localizedMessage = t(apiErr.code as any) !== apiErr.code ? t(apiErr.code as any) : apiErr.message;
@@ -449,7 +465,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
                 <button
                   type="button"
                   className="cv-switch-btn"
-                  onClick={() => { setMode('login'); setGeneralError(""); setSuccessMsg(""); }}
+                  onClick={() => switchMode("login")}
                   style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                 >
                   {isAr ? <ArrowRight size={14} /> : <ArrowLeft size={14} />}
@@ -555,9 +571,15 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
 
                     <div className="cv-field-row">
                       <label className="cv-checkbox-label">
-                        <input type="checkbox" {...registerForm.register("agree")} />
-                        <span>{isAr ? "أوافق على الشروط والأحكام" : "I agree to Terms & Conditions"}</span>
+                        <input type="checkbox" aria-invalid={Boolean(registerAgreeError)} {...registerForm.register("agree")} />
+                        <span>
+                          {isAr ? "أوافق على " : "I agree to "}
+                          <Link href="/terms-and-conditions" className="cv-switch-btn" onClick={(event) => event.stopPropagation()}>
+                            {isAr ? "الشروط والأحكام" : "Terms & Conditions"}
+                          </Link>
+                        </span>
                       </label>
+                      {registerAgreeError && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "يرجى الموافقة على الشروط والأحكام للمتابعة" : "Please agree to the Terms & Conditions to continue."}</div>}
                     </div>
 
                     <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
@@ -578,7 +600,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
                   <button
                     type="button"
                     className="cv-switch-btn"
-                    onClick={() => { setMode('register'); setShowEmailForm(true); setGeneralError(""); setSuccessMsg(""); }}
+                    onClick={() => switchMode("register")}
                   >
                     {isAr ? "إنشاء حساب مجاني" : "Sign up free"}
                   </button>
@@ -589,7 +611,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
                   <button
                     type="button"
                     className="cv-switch-btn"
-                    onClick={() => { setMode('login'); setShowEmailForm(true); setGeneralError(""); setSuccessMsg(""); }}
+                    onClick={() => switchMode("login")}
                   >
                     {isAr ? "تسجيل الدخول" : "Log in"}
                   </button>
