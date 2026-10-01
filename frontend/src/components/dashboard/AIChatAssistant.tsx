@@ -563,7 +563,7 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                   <motion.div
                     animate={{
                       scale: [1, 1.05, 1],
-                      filter: ["drop-shadow(0 0 5px rgba(79, 172, 254, 0.4))", "drop-shadow(0 0 20px rgba(124, 58, 237, 0.6))", "drop-shadow(0 0 5px rgba(79, 172, 254, 0.4))"]
+                      opacity: [0.85, 1, 0.85]
                     }}
                     transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                     style={{
@@ -572,7 +572,8 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      marginTop: "-60px"
+                      marginTop: "-60px",
+                      filter: "drop-shadow(0 0 12px rgba(124, 58, 237, 0.5))"
                     }}
                   >
                     <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

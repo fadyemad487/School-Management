@@ -622,7 +622,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                filter: theme === "dark" ? "invert(1) brightness(2)" : "none"
+                filter: theme && theme === "dark" ? "invert(1) brightness(2)" : "none"
               }}
             >
               <Lottie animationData={aiAnimation} loop={true} style={{ width: "20px", height: "20px" }} />
