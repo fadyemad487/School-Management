@@ -2,10 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { AuthModal } from "@/components/auth/AuthModal";
+
+const AuthModal = dynamic(() => import("@/components/auth/AuthModal").then((m) => m.AuthModal), {
+  ssr: false,
+});
 
 /* ── SVG Icons (inline for zero deps) ── */
 const BrandIcon = () => (

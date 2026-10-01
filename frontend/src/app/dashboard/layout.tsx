@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
@@ -182,7 +183,10 @@ function roleBadgeLabel(role?: string) {
   return role.replace(/_/g, " ");
 }
 
-import { AIChatAssistant } from "@/components/dashboard/AIChatAssistant";
+const AIChatAssistant = dynamic(
+  () => import("@/components/dashboard/AIChatAssistant").then((m) => m.AIChatAssistant),
+  { ssr: false }
+);
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { t, isAr } = useTranslation();
