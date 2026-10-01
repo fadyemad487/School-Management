@@ -85,10 +85,7 @@ export function PremiumAnalyticsHome() {
   const { data: ovEventsData, refetch: refetchEvents } = useQuery({
     queryKey: ["ovSchedules", ovCalendarDate.getMonth(), ovCalendarDate.getFullYear()],
     queryFn: async () => (await api.get(`/schedules?month=${ovCalendarDate.getMonth()}&year=${ovCalendarDate.getFullYear()}`)).data.data,
-    enabled: !!ov,
-    staleTime: 0,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
     refetchInterval: 60000, // Sync every 60s to save DB resources
   });
   const ovEvents = Array.isArray(ovEventsData) ? ovEventsData : [];

@@ -7,10 +7,11 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 0, // Data is considered immediately stale for silent background updates
-        refetchOnMount: true, // Seamlessly refresh data in background upon page mount/navigation
-        refetchOnWindowFocus: true, // Seamlessly refresh when switching back to the browser tab
-        refetchOnReconnect: true, // Seamlessly refresh when internet reconnects
+        staleTime: 30 * 1000, // Keep data fresh for 30s so transitions are instantaneous
+        gcTime: 10 * 60 * 1000, // Keep cache for 10 minutes
+        refetchOnMount: "always",
+        refetchOnWindowFocus: false, // Avoid redundant network calls on tab focus
+        refetchOnReconnect: true,
         retry: 1,
       },
     },
