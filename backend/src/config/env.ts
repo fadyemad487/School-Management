@@ -46,7 +46,10 @@ export const env = {
     if (allowedOrigins.includes(cleanOrigin)) {
       return true;
     }
-    if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) {
+    if (
+      /^https:\/\/school-management487(-[a-z0-9-]+)?\.vercel\.app$/.test(cleanOrigin) ||
+      /^https:\/\/school-management(-[a-z0-9-]+)?-fadyemad487\.vercel\.app$/.test(cleanOrigin)
+    ) {
       return true;
     }
     return false;
