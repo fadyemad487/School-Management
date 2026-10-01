@@ -351,7 +351,7 @@ export function PremiumAnalyticsHome() {
             </div>
           </div>
           <div style={{ height: 240 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart
                 data={(ov?.feesCollectionTrend || feesData).map((d: any) => ({
                   ...d,
@@ -497,7 +497,7 @@ export function PremiumAnalyticsHome() {
               <div style={{ width: 32, height: 32, background: '#3b82f6', color: '#fff', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrendingUp size={16} /></div>
             </div>
             <div style={{ height: 80, marginTop: 12 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={earningsData}>
                   <Area type="monotone" dataKey="value" stroke="#3b82f6" fill="#eff6ff" strokeWidth={2} />
                 </AreaChart>
@@ -517,7 +517,7 @@ export function PremiumAnalyticsHome() {
               <div style={{ width: 32, height: 32, background: '#ef4444', color: '#fff', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrendingUp size={16} style={{ transform: 'rotate(180deg)' }} /></div>
             </div>
             <div style={{ height: 80, marginTop: 12 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={earningsData}>
                   <Area type="monotone" dataKey="value" stroke="#ef4444" fill="#fef2f2" strokeWidth={2} />
                 </AreaChart>
@@ -574,7 +574,7 @@ export function PremiumAnalyticsHome() {
               </div>
             </div>
             <div className={styles.attendanceRingWrap}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie data={attendanceData} innerRadius={60} outerRadius={80} dataKey="value" stroke="none">
                     {attendanceData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
@@ -768,7 +768,7 @@ export function PremiumAnalyticsHome() {
                 </div>
               </div>
               <div style={{ width: 100, height: 100, position: 'relative' }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie data={performanceData} innerRadius={25} outerRadius={45} dataKey="value" stroke="none">
                       {performanceData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
