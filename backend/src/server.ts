@@ -37,7 +37,7 @@ app.use(cors({
       callback(null, true);
     } else {
       logger.security("CORS origin blocked", { origin, ip: "unknown" });
-      callback(new Error("Not allowed by CORS"));
+      callback(null, false);
     }
   },
   credentials: true,

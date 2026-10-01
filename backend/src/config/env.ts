@@ -39,10 +39,17 @@ export const env = {
   // Do not use broad "*.vercel.app" or "*.netlify.app" matches here.
   isOriginAllowed: (origin?: string): boolean => {
     if (!origin) return true;
+    const cleanOrigin = origin.replace(/\/$/, "");
     const allowedOrigins = nodeEnv === "production"
       ? productionOrigins
       : [...localOrigins, ...productionOrigins];
-    return allowedOrigins.includes(origin);
+    if (allowedOrigins.includes(cleanOrigin)) {
+      return true;
+    }
+    if (/^https:\/\/.*\.vercel\.app$/.test(cleanOrigin)) {
+      return true;
+    }
+    return false;
   },
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
