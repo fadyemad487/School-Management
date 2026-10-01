@@ -386,8 +386,34 @@ export default function SettingsPage() {
     }
   };
 
-  if (isLoading) {
-    return <div style={{ padding: "40px", textAlign: "center", color: "var(--glass-text-primary)" }}>{isAr ? "جاري تحميل تفضيلات المؤسسة..." : "Loading institutional preferences..."}</div>;
+  if (isLoading && !settings) {
+    return (
+      <div style={{ padding: "30px", display: "grid", gap: "24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ width: "220px", height: "32px", background: "var(--glass-border)", borderRadius: "10px", marginBottom: "10px" }} className="animate-pulse" />
+            <div style={{ width: "340px", height: "16px", background: "var(--glass-border)", borderRadius: "6px" }} className="animate-pulse" />
+          </div>
+          <div style={{ width: "150px", height: "44px", background: "var(--glass-border)", borderRadius: "14px" }} className="animate-pulse" />
+        </div>
+
+        <div style={{ display: "flex", gap: "12px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "12px" }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} style={{ width: "130px", height: "42px", background: "var(--glass-border)", borderRadius: "12px" }} className="animate-pulse" />
+          ))}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="card-glass" style={{ padding: "28px", height: "220px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ width: "50%", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} className="animate-pulse" />
+              <div style={{ width: "100%", height: "44px", background: "var(--glass-border)", borderRadius: "12px" }} className="animate-pulse" />
+              <div style={{ width: "75%", height: "20px", background: "var(--glass-border)", borderRadius: "6px" }} className="animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (isError) {
@@ -398,7 +424,7 @@ export default function SettingsPage() {
     );
   }
 
-  if (!formData) {
+  if (!formData && !settings) {
     return <div style={{ padding: "40px", textAlign: "center", color: "var(--glass-text-primary)" }}>{isAr ? "لا توجد إعدادات متاحة." : "No settings available."}</div>;
   }
 
