@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
     if (typeof window !== "undefined") {
       try {
-        const cached = sessionStorage.getItem("edu_auth_user");
+        const cached = localStorage.getItem("edu_auth_user") || sessionStorage.getItem("edu_auth_user");
         if (cached) return JSON.parse(cached);
       } catch (_) {}
     }
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
     if (typeof window !== "undefined") {
       try {
-        sessionStorage.setItem("edu_auth_user", JSON.stringify(newUser));
+        localStorage.setItem("edu_auth_user", JSON.stringify(newUser));
       } catch (_) {}
     }
   }, []);
@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearRememberedSession();
     if (typeof window !== "undefined") {
       try {
+        localStorage.removeItem("edu_auth_user");
         sessionStorage.removeItem("edu_auth_user");
         sessionStorage.removeItem("oauth_in_progress");
       } catch (_) {}
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         if (typeof window !== "undefined") {
           try {
-            sessionStorage.setItem("edu_auth_user", JSON.stringify(userData));
+            localStorage.setItem("edu_auth_user", JSON.stringify(userData));
           } catch (_) {}
         }
         const accessToken = (await getCurrentSession())?.access_token;
@@ -97,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       if (typeof window !== "undefined") {
         try {
+          localStorage.removeItem("edu_auth_user");
           sessionStorage.removeItem("edu_auth_user");
         } catch (_) {}
       }
@@ -145,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       if (typeof window !== "undefined") {
         try {
+          localStorage.removeItem("edu_auth_user");
           sessionStorage.removeItem("edu_auth_user");
         } catch (_) {}
       }
@@ -162,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearRememberedSession();
         if (typeof window !== "undefined") {
           try {
+            localStorage.removeItem("edu_auth_user");
             sessionStorage.removeItem("edu_auth_user");
           } catch (_) {}
         }

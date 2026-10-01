@@ -16,14 +16,62 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// A rejected/expired token must not leave a stale authenticated UI on screen.
-// The provider observes the SIGNED_OUT event and returns the user to login.
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason?: unknown) => void }> = [];
+
+const processQueue = (error: any = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
+    }
+  });
+  failedQueue = [];
+};
+
+// Handle token expiration seamlessly: attempt refresh session before signing out.
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      await supabase.auth.signOut();
+    const originalRequest = error.config;
+
+    if (axios.isAxiosError(error) && error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { data, error: refreshErr } = await supabase.auth.refreshSession();
+        if (refreshErr || !data.session) {
+          processQueue(refreshErr || new Error("Session refresh failed"));
+          await supabase.auth.signOut();
+          return Promise.reject(error);
+        }
+
+        processQueue(null);
+        originalRequest.headers.Authorization = `Bearer ${data.session.access_token}`;
+        return api(originalRequest);
+      } catch (err) {
+        processQueue(err);
+        await supabase.auth.signOut();
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
     return Promise.reject(error);
   }
 );

@@ -5,13 +5,8 @@ const rememberPreferenceKey = "edu_remember_me";
 
 type StoredSession = Pick<Session, "access_token" | "refresh_token">;
 
-export function persistRememberedSession(session: Session | StoredSession, remember: boolean): void {
+export function persistRememberedSession(session: Session | StoredSession, remember: boolean = true): void {
   if (typeof window === "undefined") return;
-
-  if (!remember) {
-    clearRememberedSession();
-    return;
-  }
 
   localStorage.setItem(rememberPreferenceKey, "true");
   localStorage.setItem(
@@ -24,12 +19,12 @@ export function persistRememberedSession(session: Session | StoredSession, remem
 }
 
 export function getRememberedSession(): StoredSession | null {
-  if (typeof window === "undefined" || localStorage.getItem(rememberPreferenceKey) !== "true") {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
 
   try {
-    const stored = JSON.parse(localStorage.getItem(rememberedSessionKey) || "") as StoredSession;
+    const raw = localStorage.getItem(rememberedSessionKey);
+    if (!raw) return null;
+    const stored = JSON.parse(raw) as StoredSession;
     return stored.access_token && stored.refresh_token ? stored : null;
   } catch {
     clearRememberedSession();
@@ -38,7 +33,7 @@ export function getRememberedSession(): StoredSession | null {
 }
 
 export function syncRememberedSession(session: Session | null): void {
-  if (session && typeof window !== "undefined" && localStorage.getItem(rememberPreferenceKey) === "true") {
+  if (session && typeof window !== "undefined") {
     persistRememberedSession(session, true);
   }
 }
