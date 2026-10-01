@@ -227,7 +227,15 @@ export default function CredentialsPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={5} style={{ textAlign: "center", padding: "60px" }}><div className="spinner-large" style={{ margin: "0 auto" }} /></td></tr>
+              [1, 2, 3, 4, 5].map((i) => (
+                <tr key={i} className="animate-pulse">
+                  <td><div style={{ width: "120px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "70px", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} /></td>
+                  <td><div style={{ width: "140px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "100px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td style={{ textAlign: "end" }}><div style={{ width: "32px", height: "32px", background: "var(--glass-border)", borderRadius: "8px", marginLeft: "auto" }} /></td>
+                </tr>
+              ))
             ) : filteredData?.length === 0 ? (
               <tr><td colSpan={5} style={{ textAlign: "center", padding: "60px", color: "var(--glass-text-muted)" }}>{t('cred_no_data' as any)}</td></tr>
             ) : filteredData?.map((cred: any) => {

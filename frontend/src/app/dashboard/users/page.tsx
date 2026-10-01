@@ -89,9 +89,20 @@ export default function UsersPage() {
       {error ? <div className="error-box">{error}</div> : null}
 
       {isLoading ? (
-        <div style={{ padding: "100px 0", textAlign: "center" }}>
-          <div className="spinner-large" style={{ margin: "0 auto" }} />
-          <p style={{ marginTop: "16px", color: "var(--glass-text-muted)" }}>{isAr ? "جاري جلب المستخدمين..." : "Fetching users list..."}</p>
+        <div className="users-grid">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "24px", borderRadius: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: "var(--glass-border)" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ width: "70%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "8px" }} />
+                  <div style={{ width: "40%", height: "11px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                </div>
+              </div>
+              <div style={{ width: "50%", height: "12px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "10px" }} />
+              <div style={{ width: "80px", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="users-grid">

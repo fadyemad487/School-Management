@@ -105,7 +105,18 @@ export default function TimetablePage() {
     return timetable?.find((s: any) => s.day === day && s.periodNumber === period);
   };
 
-  if (!settings) return <div style={{ padding: "40px", color: "var(--glass-text-primary)" }}>Loading environment...</div>;
+  if (!settings) return (
+    <div style={{ padding: "40px" }}>
+      <div className="animate-pulse" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ width: "200px", height: "28px", background: "var(--glass-border)", borderRadius: "8px" }} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "8px" }}>
+          {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(i => (
+            <div key={i} style={{ height: "48px", background: "var(--glass-border)", borderRadius: "10px" }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   const weekOrder = [6, 0, 1, 2, 3, 4, 5];
   const workingDays = [...(settings.workingDays || [0, 1, 2, 3, 4, 5, 6])].sort((a, b) => 

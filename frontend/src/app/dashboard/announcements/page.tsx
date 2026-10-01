@@ -85,8 +85,21 @@ export default function AnnouncementsPage() {
         {/* Feed */}
         <div className="feed-container">
           {isLoading ? (
-            <div style={{ padding: "100px 0", textAlign: "center" }}>
-              <div className="spinner-large" style={{ margin: "0 auto" }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="card-glass animate-pulse" style={{ padding: "28px", borderRadius: "20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+                    <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--glass-border)" }} />
+                    <div>
+                      <div style={{ width: "140px", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "8px" }} />
+                      <div style={{ width: "80px", height: "11px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                    </div>
+                  </div>
+                  <div style={{ width: "75%", height: "16px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "12px" }} />
+                  <div style={{ width: "100%", height: "12px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "8px" }} />
+                  <div style={{ width: "60%", height: "12px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                </div>
+              ))}
             </div>
           ) : data?.length === 0 ? (
             <div className="empty-state-card">

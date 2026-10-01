@@ -303,7 +303,19 @@ export default function InvoicesPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={9} style={{ textAlign: "center", padding: "40px" }}><div className="spinner-large" style={{margin:"0 auto"}} /></td></tr>
+              [1, 2, 3, 4].map((i) => (
+                <tr key={i} className="animate-pulse">
+                  <td><div style={{ width: "60px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "110px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "80px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "50px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "70px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "60px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "50px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "70px", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} /></td>
+                  <td style={{ textAlign: "right" }}><div style={{ width: "32px", height: "32px", background: "var(--glass-border)", borderRadius: "8px", marginLeft: "auto" }} /></td>
+                </tr>
+              ))
             ) : filteredInvoices?.length === 0 ? (
               <tr><td colSpan={9} style={{ textAlign: "center", padding: "40px", color: "var(--glass-text-muted)" }}>{isAr ? "لا توجد فواتير" : "No invoices found."}</td></tr>
             ) : filteredInvoices?.map((inv: any) => (

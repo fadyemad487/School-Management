@@ -60,10 +60,15 @@ export default function ClassesPage() {
           <Plus size={18} /> {t('btn_add_class' as TranslationKey) || "Add Class"}
         </button>
       </div>
-
       <div className="module-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px" }}>
         {isLoading ? (
-          <p style={{ color: "var(--glass-text-muted)" }}>{t('ay_loading' as any)}</p>
+          [1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "24px", height: "160px", borderRadius: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div style={{ width: "45%", height: "22px", background: "var(--glass-border)", borderRadius: "6px" }} />
+              <div style={{ width: "75%", height: "28px", background: "var(--glass-border)", borderRadius: "8px" }} />
+              <div style={{ width: "35%", height: "16px", background: "var(--glass-border)", borderRadius: "6px" }} />
+            </div>
+          ))
         ) : classes?.map((schoolClass: any) => (
           <div key={schoolClass.id} className="luxury-stat-card" style={{ "--accent-color": "#8b5cf6" } as any}>
             <div className="luxury-stat-inner">

@@ -331,8 +331,17 @@ export default function TransportPage() {
               
               <div className="buses-list">
                 {busesLoading ? (
-                  <div style={{ padding: "60px 0", textAlign: "center" }}>
-                    <div className="spinner-large" style={{ margin: "0 auto" }} />
+                  <div style={{ display: "grid", gap: "12px" }}>
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse" style={{ padding: "20px", borderRadius: "16px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", display: "flex", alignItems: "center", gap: "14px" }}>
+                        <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--glass-border)" }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ width: "50%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "8px" }} />
+                          <div style={{ width: "30%", height: "11px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                        </div>
+                        <div style={{ width: "60px", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} />
+                      </div>
+                    ))}
                   </div>
                 ) : buses?.length === 0 ? (
                   <div className="luxury-stat-card" style={{ padding: "60px", textAlign: "center", "--accent-color": "var(--glass-border)" } as any}>
@@ -485,7 +494,14 @@ export default function TransportPage() {
                 
                 <div className="routes-list">
                   {routesLoading ? (
-                    <p>{isAr ? "جاري التحميل..." : "Loading routes..."}</p>
+                    <div style={{ display: "grid", gap: "12px" }}>
+                      {[1, 2].map((i) => (
+                        <div key={i} className="animate-pulse" style={{ padding: "16px 20px", borderRadius: "16px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}>
+                          <div style={{ width: "45%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "10px" }} />
+                          <div style={{ width: "70%", height: "12px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                        </div>
+                      ))}
+                    </div>
                   ) : routes?.length === 0 ? (
                     <div className="empty-state-mini">{isAr ? "لا توجد مسارات" : "No routes defined."}</div>
                   ) : routes?.map((route: any) => (
@@ -544,7 +560,17 @@ export default function TransportPage() {
                 
                 <div className="drivers-list" style={{ display: "grid", gap: "12px" }}>
                    {driversLoading ? (
-                     <p>{isAr ? "جاري التحميل..." : "Loading drivers..."}</p>
+                    <div style={{ display: "grid", gap: "10px" }}>
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="animate-pulse" style={{ padding: "12px 16px", borderRadius: "14px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "var(--glass-border)" }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ width: "55%", height: "13px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "6px" }} />
+                            <div style={{ width: "35%", height: "10px", background: "var(--glass-border)", borderRadius: "4px" }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                    ) : drivers?.length === 0 ? (
                      <div className="empty-state-mini">{isAr ? "لم يتم إضافة سواقين بعد" : "No drivers added."}</div>
                    ) : drivers?.map((driver: any) => (
@@ -748,11 +774,17 @@ export default function TransportPage() {
                 </thead>
                 <tbody>
                   {studentsLoading ? (
-                    <tr>
-                      <td colSpan={7} style={{ padding: "60px 0", textAlign: "center" }}>
-                        <div className="spinner-large" style={{ margin: "0 auto" }} />
-                      </td>
-                    </tr>
+                    [1, 2, 3, 4].map((i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td><div style={{ width: "30px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                        <td><div style={{ width: "110px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                        <td><div style={{ width: "80px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                        <td><div style={{ width: "60px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                        <td><div style={{ width: "50px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                        <td><div style={{ width: "70px", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} /></td>
+                        <td><div style={{ width: "60px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                      </tr>
+                    ))
                   ) : filteredLogs.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ padding: "60px 0", textAlign: "center", color: "var(--glass-text-muted)" }}>
@@ -927,7 +959,17 @@ export default function TransportPage() {
 
           <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {studentsLoading ? (
-              <p>{isAr ? "جاري تحميل الطلاب..." : "Loading students..."}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="animate-pulse" style={{ padding: "10px 12px", borderRadius: "10px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--glass-border)" }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ width: "60%", height: "12px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "5px" }} />
+                      <div style={{ width: "35%", height: "10px", background: "var(--glass-border)", borderRadius: "4px" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : transportStudents?.filter((s: any) => {
               const name = (s.nameAr || s.user?.fullName || "").toLowerCase();
               return name.includes(studentSearch.toLowerCase());

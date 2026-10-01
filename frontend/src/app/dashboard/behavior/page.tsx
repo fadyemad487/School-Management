@@ -161,8 +161,20 @@ export default function BehaviorPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <div className="spinner-large" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "24px", borderRadius: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px" }}>
+                <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--glass-border)" }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ width: "60%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "8px" }} />
+                  <div style={{ width: "35%", height: "11px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                </div>
+              </div>
+              <div style={{ width: "100%", height: "12px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "10px" }} />
+              <div style={{ width: "75%", height: "12px", background: "var(--glass-border)", borderRadius: "5px" }} />
+            </div>
+          ))}
         </div>
       ) : activeReports.length === 0 ? (
         <div className="card-glass p-12 text-center text-slate-400">

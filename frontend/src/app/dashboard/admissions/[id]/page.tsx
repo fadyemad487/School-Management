@@ -83,7 +83,18 @@ export default function AdmissionDetailsPage() {
     }
   };
 
-  if (isLoading) return <div style={{ padding: "80px", textAlign: "center" }}><div className="spinner-large" style={{ margin: "0 auto" }} /></div>;
+  if (isLoading) {
+    return (
+      <div style={{ padding: "30px", display: "grid", gap: "24px" }}>
+        <div style={{ width: "240px", height: "36px", background: "var(--glass-border)", borderRadius: "10px" }} className="animate-pulse" />
+        <div className="card-glass animate-pulse" style={{ padding: "32px", height: "300px", borderRadius: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ width: "40%", height: "28px", background: "var(--glass-border)", borderRadius: "8px" }} />
+          <div style={{ width: "80%", height: "20px", background: "var(--glass-border)", borderRadius: "6px" }} />
+          <div style={{ width: "60%", height: "20px", background: "var(--glass-border)", borderRadius: "6px" }} />
+        </div>
+      </div>
+    );
+  }
   if (!app) return <div style={{ padding: "80px", textAlign: "center" }}>Application not found.</div>;
 
   const ef = (label: string, field: string) => (

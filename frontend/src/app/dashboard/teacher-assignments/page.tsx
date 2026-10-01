@@ -130,9 +130,16 @@ export default function TeacherAssignmentsPage() {
           {/* Teacher List */}
           <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
             {loadingTeachers ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "var(--glass-text-muted)" }}>
-                <div className="spinner-large" style={{ margin: "0 auto 12px" }} />
-                {isAr ? "جاري التحميل..." : "Loading..."}
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="animate-pulse" style={{ padding: "12px 16px", borderRadius: "12px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "var(--glass-border)" }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ width: "70%", height: "13px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "6px" }} />
+                      <div style={{ width: "45%", height: "10px", background: "var(--glass-border)", borderRadius: "4px" }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : filteredTeachers.length === 0 ? (
               <div style={{ textAlign: "center", padding: "40px 0", color: "var(--glass-text-muted)", fontSize: "13px" }}>
@@ -327,9 +334,14 @@ export default function TeacherAssignmentsPage() {
                 </h3>
 
                 {loadingAssignments ? (
-                  <div className="card-glass" style={{ padding: "60px", textAlign: "center", borderRadius: "20px" }}>
-                    <div className="spinner-large" style={{ margin: "0 auto 12px" }} />
-                    <p style={{ color: "var(--glass-text-muted)" }}>{isAr ? "جاري التحميل..." : "Loading..."}</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "16px" }}>
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="card-glass animate-pulse" style={{ padding: "20px", borderRadius: "16px" }}>
+                        <div style={{ width: "50%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "12px" }} />
+                        <div style={{ width: "80%", height: "12px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "8px" }} />
+                        <div style={{ width: "60%", height: "12px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                      </div>
+                    ))}
                   </div>
                 ) : assignments.length === 0 ? (
                   <div className="card-glass" style={{

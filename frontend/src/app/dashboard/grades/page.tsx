@@ -91,12 +91,15 @@ export default function GradesPage() {
         </div>
       )}
 
-      <div className="module-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px" }}>
         {isLoading ? (
-          <div className="card-glass" style={{ gridColumn: "1 / -1", textAlign: "center" }}>
-            <div className="spinner-large" style={{ margin: "0 auto 20px" }} />
-            <p style={{ color: "var(--glass-text-primary)" }}>{t('gd_loading' as any)}</p>
-          </div>
+          [1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "24px", height: "150px", borderRadius: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div style={{ width: "40%", height: "20px", background: "var(--glass-border)", borderRadius: "6px" }} />
+              <div style={{ width: "70%", height: "26px", background: "var(--glass-border)", borderRadius: "8px" }} />
+              <div style={{ width: "30%", height: "16px", background: "var(--glass-border)", borderRadius: "6px" }} />
+            </div>
+          ))
         ) : data?.length === 0 ? (
           <div className="card-glass" style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px" }}>
             <GraduationCap size={48} color="var(--glass-text-muted)" style={{ marginBottom: "20px" }} />

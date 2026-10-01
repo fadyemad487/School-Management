@@ -78,12 +78,13 @@ export default function AcademicYearsPage() {
 
       <div className="module-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
         {isLoading ? (
-          <div className="luxury-stat-card" style={{ gridColumn: "1 / -1", textAlign: "center", "--accent-color": "var(--primary-light)" } as any}>
-            <div className="luxury-stat-inner">
-              <div className="spinner-large" style={{ margin: "0 auto 20px" }} />
-              <p style={{ color: "var(--glass-text-primary)" }}>{t('ay_loading' as any)}</p>
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "24px", height: "160px", borderRadius: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div style={{ width: "50%", height: "24px", background: "var(--glass-border)", borderRadius: "6px" }} />
+              <div style={{ width: "80%", height: "20px", background: "var(--glass-border)", borderRadius: "6px" }} />
+              <div style={{ width: "40%", height: "16px", background: "var(--glass-border)", borderRadius: "6px" }} />
             </div>
-          </div>
+          ))
         ) : data?.length === 0 ? (
           <div className="luxury-stat-card" style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px", "--accent-color": "var(--glass-text-muted)" } as any}>
              <div className="luxury-stat-inner">

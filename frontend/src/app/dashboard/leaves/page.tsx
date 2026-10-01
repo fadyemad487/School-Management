@@ -95,7 +95,18 @@ export default function LeavesPage() {
           <div className={pageStyles.listScrollContainer} style={{ maxHeight: '600px' }}>
             <div className={styles.list}>
               {isLoading ? (
-                <div className={pageStyles.emptyState}>{isAr ? "جاري التحميل..." : "Loading..."}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "12px" }}>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse" style={{ padding: "16px", borderRadius: "14px", background: "var(--glass-bg)", border: "1px solid var(--glass-border)", display: "flex", alignItems: "center", gap: "14px" }}>
+                      <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--glass-border)", flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ width: "50%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "8px" }} />
+                        <div style={{ width: "30%", height: "11px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                      </div>
+                      <div style={{ width: "60px", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} />
+                    </div>
+                  ))}
+                </div>
               ) : filteredLeaves.length === 0 ? (
                 <div className={pageStyles.emptyState}>
                   <Clock size={48} />

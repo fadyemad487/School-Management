@@ -59,7 +59,22 @@ export default function StudentDashboard() {
     queryFn: async () => (await api.get(`/classes`)).data.data,
   });
 
-  if (isLoading) return <div className={styles.loading}><div className={styles.spinner}></div></div>;
+  if (isLoading) {
+    return (
+      <div style={{ padding: "30px", display: "grid", gap: "24px" }} dir={isAr ? "rtl" : "ltr"}>
+        <div style={{ width: "240px", height: "36px", background: "var(--glass-border)", borderRadius: "10px" }} className="animate-pulse" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "30px", height: "240px", borderRadius: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "var(--glass-border)" }} />
+              <div style={{ width: "70%", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} />
+              <div style={{ width: "90%", height: "18px", background: "var(--glass-border)", borderRadius: "6px" }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   const name = isAr ? (student?.nameAr || student?.user?.fullName || "Sara Magdy") : (student?.nameEn || student?.user?.fullName || "Sara Magdy");
 
   return (

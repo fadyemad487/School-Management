@@ -142,9 +142,19 @@ export default function DriversPage() {
 
         <div className="drivers-grid">
           {isLoading ? (
-            <div className="loading-state">
-               <div className="spinner-large" />
-            </div>
+            [1, 2, 3, 4].map((i) => (
+              <div key={i} className="card-glass animate-pulse" style={{ padding: "24px", borderRadius: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+                  <div style={{ width: "52px", height: "52px", borderRadius: "16px", background: "var(--glass-border)" }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ width: "65%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "8px" }} />
+                    <div style={{ width: "40%", height: "11px", background: "var(--glass-border)", borderRadius: "5px" }} />
+                  </div>
+                </div>
+                <div style={{ width: "100%", height: "12px", background: "var(--glass-border)", borderRadius: "5px", marginBottom: "10px" }} />
+                <div style={{ width: "70%", height: "12px", background: "var(--glass-border)", borderRadius: "5px" }} />
+              </div>
+            ))
           ) : filteredDrivers?.length === 0 ? (
             <div className="empty-state">
                <Users size={48} opacity={0.2} />

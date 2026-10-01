@@ -92,7 +92,15 @@ export default function ArchivesPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={5} style={{ textAlign: "center", padding: "40px" }}>{isAr ? "جاري التحميل..." : "Loading..."}</td></tr>
+              [1, 2, 3, 4].map((i) => (
+                <tr key={i} className="animate-pulse">
+                  <td style={{ textAlign: "start" }}><div style={{ display: "flex", alignItems: "center", gap: "12px" }}><div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "var(--glass-border)" }} /><div style={{ width: "120px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></div></td>
+                  <td><div style={{ width: "60px", height: "24px", background: "var(--glass-border)", borderRadius: "8px" }} /></td>
+                  <td><div style={{ width: "90px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "80px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td style={{ textAlign: "end" }}><div style={{ width: "32px", height: "32px", background: "var(--glass-border)", borderRadius: "8px", marginLeft: "auto" }} /></td>
+                </tr>
+              ))
             ) : filteredArchives?.length === 0 ? (
               <tr><td colSpan={5} style={{ textAlign: "center", padding: "40px", color: "var(--glass-text-muted)" }}>{isAr ? "الأرشيف فارغ" : "Archive is empty"}</td></tr>
             ) : filteredArchives?.map((item: any) => (

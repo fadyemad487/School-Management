@@ -75,12 +75,16 @@ export default function TeachersPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: "center", padding: "60px", color: "var(--glass-text-muted)" }}>
-                  <div className="spinner-large" style={{ margin: "0 auto 12px" }} />
-                  {isAr ? "جاري تحميل البيانات..." : "Loading faculty data..."}
-                </td>
-              </tr>
+              [1, 2, 3, 4, 5].map((i) => (
+                <tr key={i} className="animate-pulse">
+                  <td><div style={{ display: "flex", alignItems: "center", gap: "12px" }}><div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "var(--glass-border)" }} /><div><div style={{ width: "120px", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "6px" }} /><div style={{ width: "60px", height: "10px", background: "var(--glass-border)", borderRadius: "4px" }} /></div></div></td>
+                  <td><div style={{ width: "100px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "80px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "70px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td><div style={{ width: "110px", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} /></td>
+                  <td style={{ textAlign: "right" }}><div style={{ width: "32px", height: "32px", background: "var(--glass-border)", borderRadius: "8px", marginLeft: "auto" }} /></td>
+                </tr>
+              ))
             ) : data?.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: "center", padding: "60px", color: "var(--glass-text-muted)" }}>

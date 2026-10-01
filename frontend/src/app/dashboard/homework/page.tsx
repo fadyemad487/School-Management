@@ -54,9 +54,14 @@ export default function HomeworkPage() {
       </div>
 
       {isLoading ? (
-        <div className="card-glass" style={{ textAlign: "center" }}>
-          <div className="spinner-large" style={{ margin: "0 auto 18px" }} />
-          <p style={{ color: "var(--glass-text-secondary)" }}>Loading homework…</p>
+        <div className="module-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: "20px" }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "24px", height: "140px", borderRadius: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div style={{ width: "60%", height: "22px", background: "var(--glass-border)", borderRadius: "6px" }} />
+              <div style={{ width: "80%", height: "18px", background: "var(--glass-border)", borderRadius: "6px" }} />
+              <div style={{ width: "40%", height: "14px", background: "var(--glass-border)", borderRadius: "6px" }} />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="module-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))" }}>

@@ -106,9 +106,17 @@ export default function NotificationsPage() {
       {error && <div className="error-box">{error}</div>}
 
       {isLoading ? (
-        <div style={{ padding: "100px 0", textAlign: "center" }}>
-          <div className="spinner-large" style={{ margin: "0 auto" }} />
-          <p style={{ marginTop: "16px", color: "var(--glass-text-muted)" }}>{isAr ? "جاري جلب الإشعارات..." : "Loading notifications history..."}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="card-glass animate-pulse" style={{ padding: "20px 24px", borderRadius: "16px", display: "flex", alignItems: "center", gap: "16px" }}>
+              <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "var(--glass-border)", flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ width: "60%", height: "14px", background: "var(--glass-border)", borderRadius: "6px", marginBottom: "8px" }} />
+                <div style={{ width: "40%", height: "12px", background: "var(--glass-border)", borderRadius: "5px" }} />
+              </div>
+              <div style={{ width: "70px", height: "12px", background: "var(--glass-border)", borderRadius: "5px" }} />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="notifications-list">
