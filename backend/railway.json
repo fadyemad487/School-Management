@@ -5,6 +5,6 @@
     "buildCommand": "npm install --include=dev && npx prisma generate && npx tsc -p tsconfig.json"
   },
   "deploy": {
-    "startCommand": "node dist/server.js"
+    "startCommand": "npx prisma migrate deploy && node dist/server.js"
   }
 }

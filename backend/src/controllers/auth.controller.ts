@@ -31,6 +31,10 @@ const registerSchema = z.object({
   schoolId: z.string().min(3, "School ID must be at least 3 characters.")
 });
 
+const linkedProviderSchema = z.object({
+  provider: z.enum(["google", "facebook", "apple"])
+});
+
 /* ── POST /auth/login ── */
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = loginSchema.parse(req.body);
@@ -349,6 +353,59 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
       ...(schoolCount !== undefined && { totalSchools: schoolCount })
     }
   });
+});
+
+/* ── POST /auth/linked-identities/disable ── */
+export const disableLinkedIdentity = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) throw new AuthenticationError("Not authenticated.", "NOT_AUTHENTICATED");
+
+  const { provider } = linkedProviderSchema.parse(req.body);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { disabledOAuthProviders: true }
+  });
+  if (!user) throw new NotFoundError("User");
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      disabledOAuthProviders: Array.from(new Set([...user.disabledOAuthProviders, provider]))
+    }
+  });
+
+  res.json({ success: true });
+});
+
+/* ── POST /auth/linked-identities/enable ── */
+export const enableLinkedIdentity = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) throw new AuthenticationError("Not authenticated.", "NOT_AUTHENTICATED");
+
+  const { provider } = linkedProviderSchema.parse(req.body);
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+  if (!token) throw new AuthenticationError("Missing token", "NOT_AUTHENTICATED");
+
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  const providerIsLinked = !error && data.user?.identities?.some((identity: any) => identity.provider === provider);
+  if (!providerIsLinked) {
+    throw new ValidationError("Link the provider before enabling it.", "provider");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { disabledOAuthProviders: true }
+  });
+  if (!user) throw new NotFoundError("User");
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      disabledOAuthProviders: user.disabledOAuthProviders.filter((item) => item !== provider)
+    }
+  });
+
+  res.json({ success: true });
 });
 
 /* ── POST /auth/webhook (legacy — kept for backward compat) ── */
@@ -790,4 +847,3 @@ export const changeMobilePassword = asyncHandler(async (req: Request, res: Respo
 
   res.json({ success: true, message: "Password updated successfully." });
 });
-

@@ -89,6 +89,24 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return;
     }
 
+    const signInProvider = typeof authUser.app_metadata?.provider === "string"
+      ? authUser.app_metadata.provider.toLowerCase()
+      : "";
+    const isExternalProvider = ["google", "facebook", "apple"].includes(signInProvider);
+
+    // Matching an OAuth email must never bypass an account that was explicitly
+    // unlinked in Settings. The block is stored with the EduControl user, not
+    // only on a Supabase identity, so it also covers a newly-created OAuth user
+    // with the same email address.
+    if (isExternalProvider && dbUser.disabledOAuthProviders.includes(signInProvider)) {
+      res.status(401).json({
+        success: false,
+        code: "OAUTH_PROVIDER_UNLINKED",
+        message: "This sign-in provider is no longer linked to your EduControl account. Sign in with email and password, then link it again from Settings."
+      });
+      return;
+    }
+
     req.user = {
       id: dbUser.id,
       supabaseId: authUser.id,

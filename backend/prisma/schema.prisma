@@ -265,6 +265,9 @@ model User {
   fullName         String
   role             Role     @default(STUDENT)
   currentSessionId String?
+  // OAuth providers explicitly removed from Linked Accounts. This prevents a
+  // matching provider email from becoming an alternative sign-in path.
+  disabledOAuthProviders String[] @default([])
   schoolId         String?
   school           School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   createdAt        DateTime @default(now())

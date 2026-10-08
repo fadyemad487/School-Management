@@ -55,6 +55,12 @@ function LinkedAccountsSection({ isAr }: { isAr: boolean }) {
       const { data, error } = await supabase.auth.getUserIdentities();
       if (!error && data?.identities) {
         setIdentities(data.identities);
+
+        const linkedProvider = sessionStorage.getItem("edu_linked_account_in_progress");
+        if (linkedProvider && data.identities.some((identity: any) => identity.provider === linkedProvider)) {
+          await api.post("/auth/linked-identities/enable", { provider: linkedProvider });
+          sessionStorage.removeItem("edu_linked_account_in_progress");
+        }
       }
     } catch (err) {
       console.error("Failed to fetch identities:", err);
@@ -74,6 +80,7 @@ function LinkedAccountsSection({ isAr }: { isAr: boolean }) {
   const handleLink = async (provider: string) => {
     setActionLoading(provider);
     try {
+      sessionStorage.setItem("edu_linked_account_in_progress", provider);
       const { error } = await supabase.auth.linkIdentity({
         provider: provider as any,
         options: {
@@ -81,6 +88,7 @@ function LinkedAccountsSection({ isAr }: { isAr: boolean }) {
         }
       });
       if (error) {
+        sessionStorage.removeItem("edu_linked_account_in_progress");
         alert(`❌ ${error.message}`);
       }
       // On success, user is redirected to provider, then back. fetchIdentities runs on mount.
@@ -103,8 +111,12 @@ function LinkedAccountsSection({ isAr }: { isAr: boolean }) {
 
     setActionLoading(provider);
     try {
+      // Persist the block first: a same-email OAuth account must not be able
+      // to get back in while the Supabase unlink request is in flight.
+      await api.post("/auth/linked-identities/disable", { provider });
       const { error } = await supabase.auth.unlinkIdentity(identity);
       if (error) {
+        await api.post("/auth/linked-identities/enable", { provider });
         alert(`❌ ${error.message}`);
       } else {
         await supabase.auth.refreshSession();

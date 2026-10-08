@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, register, checkSchoolId, checkSchoolName, checkSchoolEmail, getMe, mobileLogin, mobileSocialLogin, changeMobilePassword } from "../../controllers/auth.controller";
+import { login, register, checkSchoolId, checkSchoolName, checkSchoolEmail, getMe, mobileLogin, mobileSocialLogin, changeMobilePassword, disableLinkedIdentity, enableLinkedIdentity } from "../../controllers/auth.controller";
 import { requireAuth } from "../../middlewares/auth";
 import { requireMobileAuth } from "../../middlewares/mobileAuth";
 import { createRateLimiter } from "../../middlewares/rateLimit";
@@ -39,6 +39,8 @@ router.get("/check-school-email/:email", availabilityLimiter, checkSchoolEmail);
 
 // Protected routes
 router.get("/me", requireAuth, getMe);
+router.post("/linked-identities/disable", requireAuth, disableLinkedIdentity);
+router.post("/linked-identities/enable", requireAuth, enableLinkedIdentity);
 router.post("/mobile/change-password", requireMobileAuth, changeMobilePassword);
 
 export default router;
