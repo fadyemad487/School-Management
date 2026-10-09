@@ -64,24 +64,13 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
   const router = useRouter();
   const { setAuthUser } = useAuth();
 
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'verify-otp' | 'update-password'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [oauthVerified, setOauthVerified] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-
-  // Recovery & OTP states
-  const [resetEmail, setResetEmail] = useState("");
-  const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
-  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [resendTimer, setResendTimer] = useState(0);
-
-  // Update password states
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
 
   // Login field errors
   const [loginEmailError, setLoginEmailError] = useState("");
@@ -107,17 +96,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
     setGeneralError("");
     setSuccessMsg("");
     setShowEmailForm(false);
-    setOtpDigits(["", "", "", "", "", ""]);
-    setNewPassword("");
-    setConfirmPassword("");
-    setPasswordError("");
   }, [initialMode, isOpen]);
-
-  useEffect(() => {
-    if (resendTimer <= 0) return;
-    const interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
-    return () => clearInterval(interval);
-  }, [resendTimer]);
 
   useEffect(() => {
     if (!isOpen || typeof window === "undefined") return;
@@ -411,7 +390,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
         return;
       }
 
-      // Step 2: Send reset password OTP via Supabase
+      // Step 2: Send reset password link via Supabase
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`
       });
@@ -421,13 +400,10 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
         return;
       }
 
-      setResetEmail(email);
-      setMode('verify-otp');
-      setResendTimer(60);
       setSuccessMsg(
         isAr
-          ? "تم إرسال رمز التحقق (6 أرقام) إلى بريدك الإلكتروني بنجاح! 📩"
-          : "6-digit verification code sent to your email successfully! 📩"
+          ? "تم إرسال رابط استعادة كلمة السر إلى بريدك الإلكتروني بنجاح! 📩"
+          : "Recovery link sent to your email successfully! 📩"
       );
     } catch (err: any) {
       setGeneralError(err.message || "An unexpected error occurred");
@@ -435,92 +411,6 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
       setIsLoading(false);
     }
   });
-
-  // Handle Verify OTP Submit
-  const onVerifyOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGeneralError("");
-    setSuccessMsg("");
-
-    const otpCode = otpDigits.join("").trim();
-    if (otpCode.length < 6) {
-      setGeneralError(isAr ? "يرجى إدخال رمز التحقق المكون من 6 أرقام كاملاً." : "Please enter the complete 6-digit code.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error: verifyErr } = await supabase.auth.verifyOtp({
-        email: resetEmail,
-        token: otpCode,
-        type: "recovery"
-      });
-
-      if (verifyErr) {
-        setGeneralError(verifyErr.message || (isAr ? "رمز التحقق غير صحيح أو انتهت صلاحيته." : "Invalid or expired code."));
-        return;
-      }
-
-      setGeneralError("");
-      setSuccessMsg("");
-      setMode('update-password');
-    } catch (err: any) {
-      setGeneralError(err.message || "Failed to verify code");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle Update Password Submit
-  const onUpdatePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGeneralError("");
-    setPasswordError("");
-
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError(isAr ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل." : "Password must be at least 6 characters.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError(isAr ? "كلمتا المرور غير متطابقتين." : "Passwords do not match.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error: updateErr } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (updateErr) {
-        setGeneralError(updateErr.message);
-        return;
-      }
-
-      await supabase.auth.signOut().catch(() => {});
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.removeItem("edu_auth_user");
-          sessionStorage.removeItem("edu_auth_user");
-        } catch (_) {}
-      }
-
-      setSuccessMsg(
-        isAr
-          ? "تم تحديث كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول."
-          : "Password updated successfully! You can now log in."
-      );
-      setMode('login');
-      setShowEmailForm(true);
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {
-      setGeneralError(err.message || "Failed to update password");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Handle OAuth Sign In
   const handleOAuthSignIn = async (provider: 'google' | 'facebook') => {
@@ -570,14 +460,11 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
               {mode === 'login' && (isAr ? "تسجيل الدخول إلى EduControl" : "Log in to EduControl")}
               {mode === 'register' && (isAr ? "تسجيل الدخول أو إنشاء حساب خلال ثوانٍ" : "Log in or sign up in seconds")}
               {mode === 'forgot' && (isAr ? "استرجاع كلمة السر" : "Reset your password")}
-              {mode === 'verify-otp' && (isAr ? "رمز التحقق (6 أرقام)" : "Verification Code (6-digit)")}
-              {mode === 'update-password' && (isAr ? "تعيين كلمة المرور الجديدة" : "Set New Password")}
             </h2>
             <p className="sub">
-              {mode === 'forgot' && (isAr ? "أدخل بريدك الإلكتروني وسنرسل لك رمز استعادة مكون من 6 أرقام." : "Enter your email to receive a 6-digit recovery code.")}
-              {mode === 'verify-otp' && (isAr ? `أدخل الرمز المكون من 6 أرقام المرسل إلى ${resetEmail}` : `Enter the 6-digit code sent to ${resetEmail}`)}
-              {mode === 'update-password' && (isAr ? "أدخل كلمة المرور الجديدة لحسابك واضغط حفظ للمتابعة." : "Enter a new secure password for your account.")}
-              {['login', 'register'].includes(mode) && (isAr ? "استخدم بريدك أو إحدى الخدمات للمتابعة في EduControl (مجاناً!)" : "Use your email or another service to continue with EduControl (it's free!)")}
+              {mode === 'forgot'
+                ? (isAr ? "أدخل بريدك الإلكتروني وسنرسل لك رابطاً لاستعادة حسابك." : "Enter your email to receive a password reset link.")
+                : (isAr ? "استخدم بريدك أو إحدى الخدمات للمتابعة في EduControl (مجاناً!)" : "Use your email or another service to continue with EduControl (it's free!)")}
             </p>
           </div>
 
@@ -594,7 +481,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
           )}
 
           {/* Social Logins (Only for Login & Register) */}
-          {['login', 'register'].includes(mode) && (
+          {mode !== 'forgot' && (
             <div className="cv-social-group">
               <button
                 type="button"
@@ -636,7 +523,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
           )}
 
           {/* ── FORGOT PASSWORD FORM ── */}
-          {mode === 'forgot' && (
+          {mode === 'forgot' ? (
             <form onSubmit={onForgotSubmit} className="cv-form">
               <div className="cv-field">
                 <label>{isAr ? "البريد الإلكتروني المسجل" : "Registered Email Address"}</label>
@@ -648,7 +535,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
               </div>
 
               <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
-                {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "إرسال رمز التحقق (6 أرقام)" : "Send 6-Digit Code")}
+                {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "إرسال رابط الاستعادة" : "Send Recovery Link")}
               </button>
 
               <div className="cv-modal-switch" style={{ marginTop: 14 }}>
@@ -663,250 +550,126 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
                 </button>
               </div>
             </form>
-          )}
-
-          {/* ── VERIFY OTP FORM ── */}
-          {mode === 'verify-otp' && (
-            <form onSubmit={onVerifyOtpSubmit} className="cv-form">
-              <div className="cv-field">
-                <label style={{ textAlign: "center", width: "100%", display: "block" }}>
-                  {isAr ? "أدخل الرمز المكون من 6 أرقام" : "Enter the 6-digit code"}
-                </label>
-                <div style={{ display: "flex", gap: "8px", justifyContent: "center", direction: "ltr", margin: "16px 0" }}>
-                  {otpDigits.map((digit, i) => (
-                    <input
-                      key={i}
-                      ref={(el) => { otpInputRefs.current[i] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        const newD = [...otpDigits];
-                        newD[i] = val.slice(-1);
-                        setOtpDigits(newD);
-                        if (val && i < 5) otpInputRefs.current[i + 1]?.focus();
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Backspace" && !otpDigits[i] && i > 0) {
-                          otpInputRefs.current[i - 1]?.focus();
-                        }
-                      }}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-                        if (pasted) {
-                          const newD = [...otpDigits];
-                          for (let idx = 0; idx < pasted.length; idx++) {
-                            newD[idx] = pasted[idx];
-                          }
-                          setOtpDigits(newD);
-                          otpInputRefs.current[Math.min(pasted.length, 5)]?.focus();
-                        }
-                      }}
-                      style={{
-                        width: "44px",
-                        height: "52px",
-                        borderRadius: "12px",
-                        border: digit ? "2px solid #4f46e5" : "1px solid rgba(255, 255, 255, 0.15)",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        color: "#ffffff",
-                        fontSize: "20px",
-                        fontWeight: "800",
-                        textAlign: "center",
-                        outline: "none",
-                        transition: "all 0.2s ease"
-                      }}
-                    />
-                  ))}
+          ) : (
+            /* ── LOGIN & REGISTER FORMS ── */
+            (showEmailForm || mode === 'register') && (
+              <div className="cv-email-form-wrap">
+                <div className="cv-divider">
+                  <span>{isAr ? "أو أدخل بياناتك" : "or enter your details"}</span>
                 </div>
-              </div>
 
-              <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
-                {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "التحقق ومتابعة التغيير" : "Verify & Continue")}
-              </button>
+                {mode === 'login' ? (
+                  /* LOGIN FORM */
+                  <form onSubmit={onLoginSubmit} className="cv-form">
+                    <div className="cv-field">
+                      <label>{isAr ? "البريد الإلكتروني" : "Email Address"}</label>
+                      <input
+                        type="email"
+                        placeholder="name@school.edu"
+                        {...loginForm.register("email")}
+                      />
+                      {loginEmailError && <div className="cv-field-error"><AlertCircle size={14} /> {loginEmailError}</div>}
+                    </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", fontSize: "13px" }}>
-                <button
-                  type="button"
-                  className="cv-switch-btn"
-                  onClick={() => { setMode('forgot'); setGeneralError(""); }}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-                >
-                  {isAr ? <ArrowRight size={14} /> : <ArrowLeft size={14} />}
-                  {isAr ? "تغيير الإيميل" : "Change Email"}
-                </button>
+                    <div className="cv-field">
+                      <label>{isAr ? "كلمة المرور" : "Password"}</label>
+                      <GlassPasswordInput
+                        {...loginForm.register("password")}
+                        placeholder="••••••••"
+                      />
+                      {loginPasswordError && <div className="cv-field-error"><AlertCircle size={14} /> {loginPasswordError}</div>}
+                    </div>
 
-                {resendTimer > 0 ? (
-                  <span style={{ color: "rgba(255, 255, 255, 0.5)" }}>
-                    {isAr ? `إعادة الإرسال بعد (${resendTimer}s)` : `Resend in (${resendTimer}s)`}
-                  </span>
+                    <div className="cv-field-row">
+                      <label className="cv-checkbox-label">
+                        <input type="checkbox" {...loginForm.register("rememberMe")} />
+                        {isAr ? "تذكرني" : "Remember me"}
+                      </label>
+                      <button
+                        type="button"
+                        className="cv-forgot-link"
+                        onClick={() => { setMode('forgot'); setGeneralError(""); setSuccessMsg(""); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        {isAr ? "نسيت كلمة السر؟" : "Forgot password?"}
+                      </button>
+                    </div>
+
+                    <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
+                      {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "تسجيل الدخول" : "Log In")}
+                    </button>
+                  </form>
                 ) : (
-                  <button
-                    type="button"
-                    className="cv-switch-btn"
-                    onClick={onForgotSubmit}
-                  >
-                    {isAr ? "إعادة إرسال الرمز" : "Resend Code"}
-                  </button>
+                  /* REGISTER FORM */
+                  <form onSubmit={onRegisterSubmit} className="cv-form">
+                    <div className="cv-field">
+                      <label>{isAr ? "اسم المدرسة" : "School Name"}</label>
+                      <input
+                        type="text"
+                        placeholder={isAr ? "مثال: مدرسة الأمل الخاصة" : "e.g. Al-Amal School"}
+                        {...registerForm.register("name")}
+                      />
+                      {isCheckingName && <span className="cv-checking-hint">{isAr ? "جاري التحقق من الاسم..." : "Checking name..."}</span>}
+                      {isNameValid === false && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "اسم المدرسة مسجل بالفعل" : "School name already registered"}</div>}
+                    </div>
+
+                    <div className="cv-field">
+                      <label>{isAr ? "البريد الإلكتروني للمدرسة" : "School Email"}</label>
+                      <input
+                        type="email"
+                        placeholder="admin@school.com"
+                        {...registerForm.register("email")}
+                      />
+                      {isCheckingEmail && <span className="cv-checking-hint">{isAr ? "جاري التحقق من البريد..." : "Checking email..."}</span>}
+                      {isEmailValid === true && <div className="cv-field-success" style={{ color: "#22B573", fontSize: "0.82rem", fontWeight: 600, marginTop: 4 }}>✓ {isAr ? "البريد متاح" : "Email available"}</div>}
+                      {isEmailValid === false && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "البريد الإلكتروني مسجل بالفعل" : "Email already registered"}</div>}
+                    </div>
+
+                    <div className="cv-field">
+                      <label>{isAr ? "معرف المدرسة (School ID)" : "School ID (Short code)"}</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. alamal-school"
+                        {...registerForm.register("schoolId")}
+                      />
+                      {isCheckingSchoolId && <span className="cv-checking-hint">{isAr ? "جاري التحقق من المعرف..." : "Checking ID..."}</span>}
+                      {isSchoolIdValid === true && <div className="cv-field-success" style={{ color: "#22B573", fontSize: "0.82rem", fontWeight: 600, marginTop: 4 }}>✓ {isAr ? "المعرف متاح" : "ID is available"}</div>}
+                      {isSchoolIdValid === false && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "المعرف مستخدم بالفعل" : "ID already taken"}</div>}
+                    </div>
+
+                    <div className="cv-field">
+                      <label>{isAr ? "كلمة المرور" : "Password"}</label>
+                      <GlassPasswordInput
+                        {...registerForm.register("password")}
+                        placeholder="••••••••"
+                      />
+                      <PasswordStrengthIndicator password={registerPassword || ""} />
+                    </div>
+
+                    <div className="cv-field-row">
+                      <label className="cv-checkbox-label">
+                        <input type="checkbox" aria-invalid={Boolean(registerAgreeError)} {...registerForm.register("agree")} />
+                        <span>
+                          {isAr ? "أوافق على " : "I agree to "}
+                          <Link href="/terms-and-conditions" className="cv-switch-btn" onClick={(event) => event.stopPropagation()}>
+                            {isAr ? "الشروط والأحكام" : "Terms & Conditions"}
+                          </Link>
+                        </span>
+                      </label>
+                      {registerAgreeError && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "يرجى الموافقة على الشروط والأحكام للمتابعة" : "Please agree to the Terms & Conditions to continue."}</div>}
+                    </div>
+
+                    <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
+                      {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "إنشاء حساب المدرسة" : "Register School")}
+                    </button>
+                  </form>
                 )}
               </div>
-            </form>
-          )}
-
-          {/* ── UPDATE PASSWORD FORM ── */}
-          {mode === 'update-password' && (
-            <form onSubmit={onUpdatePasswordSubmit} className="cv-form">
-              <div className="cv-field">
-                <label>{isAr ? "كلمة المرور الجديدة" : "New Password"}</label>
-                <GlassPasswordInput
-                  placeholder="••••••••"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <PasswordStrengthIndicator password={newPassword} />
-              </div>
-
-              <div className="cv-field">
-                <label>{isAr ? "تأكيد كلمة المرور" : "Confirm Password"}</label>
-                <GlassPasswordInput
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-
-              {passwordError && (
-                <div className="cv-field-error" style={{ marginBottom: 12 }}>
-                  <AlertCircle size={14} /> {passwordError}
-                </div>
-              )}
-
-              <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
-                {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "حفظ كلمة المرور الجديدة" : "Save New Password")}
-              </button>
-            </form>
-          )}
-
-          {/* ── LOGIN & REGISTER FORMS ── */}
-          {['login', 'register'].includes(mode) && (showEmailForm || mode === 'register') && (
-            <div className="cv-email-form-wrap">
-              <div className="cv-divider">
-                <span>{isAr ? "أو أدخل بياناتك" : "or enter your details"}</span>
-              </div>
-
-              {mode === 'login' ? (
-                /* LOGIN FORM */
-                <form onSubmit={onLoginSubmit} className="cv-form">
-                  <div className="cv-field">
-                    <label>{isAr ? "البريد الإلكتروني" : "Email Address"}</label>
-                    <input
-                      type="email"
-                      placeholder="name@school.edu"
-                      {...loginForm.register("email")}
-                    />
-                    {loginEmailError && <div className="cv-field-error"><AlertCircle size={14} /> {loginEmailError}</div>}
-                  </div>
-
-                  <div className="cv-field">
-                    <label>{isAr ? "كلمة المرور" : "Password"}</label>
-                    <GlassPasswordInput
-                      {...loginForm.register("password")}
-                      placeholder="••••••••"
-                    />
-                    {loginPasswordError && <div className="cv-field-error"><AlertCircle size={14} /> {loginPasswordError}</div>}
-                  </div>
-
-                  <div className="cv-field-row">
-                    <label className="cv-checkbox-label">
-                      <input type="checkbox" {...loginForm.register("rememberMe")} />
-                      {isAr ? "تذكرني" : "Remember me"}
-                    </label>
-                    <button
-                      type="button"
-                      className="cv-forgot-link"
-                      onClick={() => { setMode('forgot'); setGeneralError(""); setSuccessMsg(""); }}
-                      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
-                    >
-                      {isAr ? "نسيت كلمة السر؟" : "Forgot password?"}
-                    </button>
-                  </div>
-
-                  <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
-                    {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "تسجيل الدخول" : "Log In")}
-                  </button>
-                </form>
-              ) : (
-                /* REGISTER FORM */
-                <form onSubmit={onRegisterSubmit} className="cv-form">
-                  <div className="cv-field">
-                    <label>{isAr ? "اسم المدرسة" : "School Name"}</label>
-                    <input
-                      type="text"
-                      placeholder={isAr ? "مثال: مدرسة الأمل الخاصة" : "e.g. Al-Amal School"}
-                      {...registerForm.register("name")}
-                    />
-                    {isCheckingName && <span className="cv-checking-hint">{isAr ? "جاري التحقق من الاسم..." : "Checking name..."}</span>}
-                    {isNameValid === false && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "اسم المدرسة مسجل بالفعل" : "School name already registered"}</div>}
-                  </div>
-
-                  <div className="cv-field">
-                    <label>{isAr ? "البريد الإلكتروني للمدرسة" : "School Email"}</label>
-                    <input
-                      type="email"
-                      placeholder="admin@school.com"
-                      {...registerForm.register("email")}
-                    />
-                    {isCheckingEmail && <span className="cv-checking-hint">{isAr ? "جاري التحقق من البريد..." : "Checking email..."}</span>}
-                    {isEmailValid === true && <div className="cv-field-success" style={{ color: "#22B573", fontSize: "0.82rem", fontWeight: 600, marginTop: 4 }}>✓ {isAr ? "البريد متاح" : "Email available"}</div>}
-                    {isEmailValid === false && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "البريد الإلكتروني مسجل بالفعل" : "Email already registered"}</div>}
-                  </div>
-
-                  <div className="cv-field">
-                    <label>{isAr ? "معرف المدرسة (School ID)" : "School ID (Short code)"}</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. alamal-school"
-                      {...registerForm.register("schoolId")}
-                    />
-                    {isCheckingSchoolId && <span className="cv-checking-hint">{isAr ? "جاري التحقق من المعرف..." : "Checking ID..."}</span>}
-                    {isSchoolIdValid === true && <div className="cv-field-success" style={{ color: "#22B573", fontSize: "0.82rem", fontWeight: 600, marginTop: 4 }}>✓ {isAr ? "المعرف متاح" : "ID is available"}</div>}
-                    {isSchoolIdValid === false && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "المعرف مستخدم بالفعل" : "ID already taken"}</div>}
-                  </div>
-
-                  <div className="cv-field">
-                    <label>{isAr ? "كلمة المرور" : "Password"}</label>
-                    <GlassPasswordInput
-                      {...registerForm.register("password")}
-                      placeholder="••••••••"
-                    />
-                    <PasswordStrengthIndicator password={registerPassword || ""} />
-                  </div>
-
-                  <div className="cv-field-row">
-                    <label className="cv-checkbox-label">
-                      <input type="checkbox" aria-invalid={Boolean(registerAgreeError)} {...registerForm.register("agree")} />
-                      <span>
-                        {isAr ? "أوافق على " : "I agree to "}
-                        <Link href="/terms-and-conditions" className="cv-switch-btn" onClick={(event) => event.stopPropagation()}>
-                          {isAr ? "الشروط والأحكام" : "Terms & Conditions"}
-                        </Link>
-                      </span>
-                    </label>
-                    {registerAgreeError && <div className="cv-field-error"><AlertCircle size={14} /> {isAr ? "يرجى الموافقة على الشروط والأحكام للمتابعة" : "Please agree to the Terms & Conditions to continue."}</div>}
-                  </div>
-
-                  <button type="submit" className={`cv-btn cv-btn-grad cv-btn-block ${isLoading ? "loading" : ""}`}>
-                    {isLoading ? <span className="cv-spinner-sm" /> : (isAr ? "إنشاء حساب المدرسة" : "Register School")}
-                  </button>
-                </form>
-              )}
-            </div>
+            )
           )}
 
           {/* Toggle between Login and Register */}
-          {['login', 'register'].includes(mode) && (
+          {mode !== 'forgot' && (
             <div className="cv-modal-switch">
               {mode === 'login' ? (
                 <p>
