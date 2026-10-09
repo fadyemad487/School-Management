@@ -89,6 +89,27 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return;
     }
 
+    // A matching email alone is not proof that this is the same Supabase
+    // account. Once known, the stable Supabase user ID is the authority.
+    if (dbUser.supabaseId && dbUser.supabaseId !== authUser.id) {
+      res.status(401).json({
+        success: false,
+        code: "OAUTH_ACCOUNT_NOT_LINKED",
+        message: "This social account is not linked to your EduControl account. Sign in with email and password, then link it again from Settings."
+      });
+      return;
+    }
+
+    // Existing accounts created before supabaseId was introduced are bound the
+    // first time their already-authorized session reaches the API.
+    if (!dbUser.supabaseId) {
+      await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { supabaseId: authUser.id }
+      });
+      dbUser.supabaseId = authUser.id;
+    }
+
     const signInProvider = typeof authUser.app_metadata?.provider === "string"
       ? authUser.app_metadata.provider.toLowerCase()
       : "";
@@ -98,7 +119,11 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // unlinked in Settings. The block is stored with the EduControl user, not
     // only on a Supabase identity, so it also covers a newly-created OAuth user
     // with the same email address.
-    if (isExternalProvider && dbUser.disabledOAuthProviders.includes(signInProvider)) {
+    if (
+      isExternalProvider &&
+      dbUser.disabledOAuthProviders.includes(signInProvider) &&
+      dbUser.supabaseId !== authUser.id
+    ) {
       res.status(401).json({
         success: false,
         code: "OAUTH_PROVIDER_UNLINKED",

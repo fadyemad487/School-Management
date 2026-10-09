@@ -159,7 +159,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Step 3: Create Supabase auth user
-  const { error: signUpError } = await supabaseAdmin.auth.admin.createUser({
+  const { data: createdAuthUser, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
@@ -171,6 +171,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   if (signUpError) {
     throw new ValidationError(signUpError.message);
+  }
+  if (!createdAuthUser.user) {
+    throw new AuthenticationError("Failed to create the authentication account.");
   }
 
   // Step 4: Determine role (SUPER_ADMIN if email matches)
@@ -191,6 +194,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     const user = await tx.user.create({
       data: {
         email,
+        supabaseId: createdAuthUser.user.id,
         fullName: name,
         role,
         schoolId: role === Role.SUPER_ADMIN ? null : school.id

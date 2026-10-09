@@ -262,6 +262,7 @@ model School {
 model User {
   id               String   @id @default(uuid())
   email            String   @unique
+  supabaseId       String?  @unique
   fullName         String
   role             Role     @default(STUDENT)
   currentSessionId String?
