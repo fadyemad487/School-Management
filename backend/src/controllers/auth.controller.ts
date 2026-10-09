@@ -437,19 +437,24 @@ export const prepareLinkIdentity = asyncHandler(async (req: Request, res: Respon
   });
   if (!user) throw new NotFoundError("User");
 
-  // Clean up ALL orphaned Supabase Auth accounts whose IDs are not bound to any registered EduControl user
+  // Clean up ONLY unlinked orphaned Supabase Auth accounts whose email and ID do not belong to ANY registered EduControl user
   try {
     const registeredUsers = await prisma.user.findMany({
-      where: { supabaseId: { not: "" } },
-      select: { supabaseId: true }
+      select: { email: true, supabaseId: true }
     });
-    const validSupabaseIds = new Set(registeredUsers.map(u => u.supabaseId).filter(Boolean));
+    const registeredEmails = new Set(registeredUsers.map(u => u.email?.toLowerCase()).filter(Boolean));
+    const registeredSupabaseIds = new Set(registeredUsers.map(u => u.supabaseId).filter(Boolean));
 
     const { data: usersData, error } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
     if (!error && usersData?.users) {
-      const orphans = usersData.users.filter((u: any) => u.id && !validSupabaseIds.has(u.id));
-      for (const orphan of orphans) {
-        await supabaseAdmin.auth.admin.deleteUser(orphan.id);
+      for (const u of usersData.users) {
+        const userEmail = u.email?.toLowerCase();
+        // NEVER touch any user whose email or supabaseId belongs to a registered EduControl account
+        if ((userEmail && registeredEmails.has(userEmail)) || (u.id && registeredSupabaseIds.has(u.id))) {
+          continue;
+        }
+        // Safe to delete only unlinked orphans
+        await supabaseAdmin.auth.admin.deleteUser(u.id);
       }
     }
   } catch (err) {
