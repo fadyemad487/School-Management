@@ -129,8 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeSession = async () => {
       let session = await getCurrentSession();
 
-      const isUpdatePasswordPage = typeof window !== "undefined" && window.location.pathname === "/update-password";
-
       if (!session) {
         const remembered = getRememberedSession();
         if (remembered) {
@@ -141,12 +139,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (session) {
-        if (isUpdatePasswordPage) {
-          // On update-password page, do NOT auto-login user into dashboard profile
-          setUser(null);
-          setLoading(false);
-          return;
-        }
         syncRememberedSession(session);
         await fetchProfile();
         return;
@@ -165,13 +157,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const isUpdatePasswordPage = typeof window !== "undefined" && window.location.pathname === "/update-password";
-      if (isUpdatePasswordPage) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
         syncRememberedSession(session);
         fetchProfile();
