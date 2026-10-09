@@ -158,6 +158,20 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     );
   }
 
+  // Clean up any orphaned temporary Supabase auth users created by earlier unlinked OAuth sign-in attempts
+  try {
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    if (existingUsers?.users) {
+      const emailLower = email.toLowerCase();
+      const orphans = existingUsers.users.filter((u: any) => u.email?.toLowerCase() === emailLower);
+      for (const orphan of orphans) {
+        await supabaseAdmin.auth.admin.deleteUser(orphan.id);
+      }
+    }
+  } catch (cleanErr) {
+    // Non-fatal if list/delete fails
+  }
+
   // Step 3: Create Supabase auth user
   const { data: createdAuthUser, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
     email,
