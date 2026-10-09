@@ -435,24 +435,25 @@ export const prepareLinkIdentity = asyncHandler(async (req: Request, res: Respon
     where: { id: userId },
     select: { email: true, supabaseId: true }
   });
-  if (!user || !user.email) throw new NotFoundError("User");
+  if (!user) throw new NotFoundError("User");
 
-  // Clean up any orphaned Supabase Auth accounts holding this email
-  if (user.supabaseId) {
-    try {
-      const { data: usersData, error } = await supabaseAdmin.auth.admin.listUsers();
-      if (!error && usersData?.users) {
-        const userEmail = user.email.toLowerCase();
-        const orphans = usersData.users.filter(
-          (u: any) => u.email?.toLowerCase() === userEmail && u.id !== user.supabaseId
-        );
-        for (const orphan of orphans) {
-          await supabaseAdmin.auth.admin.deleteUser(orphan.id);
-        }
+  // Clean up ALL orphaned Supabase Auth accounts whose IDs are not bound to any registered EduControl user
+  try {
+    const registeredUsers = await prisma.user.findMany({
+      where: { supabaseId: { not: "" } },
+      select: { supabaseId: true }
+    });
+    const validSupabaseIds = new Set(registeredUsers.map(u => u.supabaseId).filter(Boolean));
+
+    const { data: usersData, error } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    if (!error && usersData?.users) {
+      const orphans = usersData.users.filter((u: any) => u.id && !validSupabaseIds.has(u.id));
+      for (const orphan of orphans) {
+        await supabaseAdmin.auth.admin.deleteUser(orphan.id);
       }
-    } catch (err) {
-      // Non-fatal if cleanup list fails
     }
+  } catch (err) {
+    // Non-fatal if cleanup list fails
   }
 
   res.json({ success: true });
