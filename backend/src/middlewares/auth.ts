@@ -92,6 +92,14 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // A matching email alone is not proof that this is the same Supabase
     // account. Once known, the stable Supabase user ID is the authority.
     if (dbUser.supabaseId && dbUser.supabaseId !== authUser.id) {
+      // Clean up orphaned temporary OAuth account from Supabase Auth immediately
+      try {
+        await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+        logger.info(`[AUTH] Cleaned up orphaned OAuth user ${authUser.id} (${authUser.email})`);
+      } catch (cleanupErr) {
+        logger.error("[AUTH] Error cleaning up orphaned OAuth user", cleanupErr as Error);
+      }
+
       res.status(401).json({
         success: false,
         code: "OAUTH_ACCOUNT_NOT_LINKED",
@@ -124,6 +132,14 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       dbUser.disabledOAuthProviders.includes(signInProvider) &&
       dbUser.supabaseId !== authUser.id
     ) {
+      // Clean up orphaned temporary OAuth account from Supabase Auth immediately
+      try {
+        await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+        logger.info(`[AUTH] Cleaned up unlinked OAuth user ${authUser.id} (${authUser.email})`);
+      } catch (cleanupErr) {
+        logger.error("[AUTH] Error cleaning up unlinked OAuth user", cleanupErr as Error);
+      }
+
       res.status(401).json({
         success: false,
         code: "OAUTH_PROVIDER_UNLINKED",

@@ -412,6 +412,38 @@ export const enableLinkedIdentity = asyncHandler(async (req: Request, res: Respo
   res.json({ success: true });
 });
 
+/* ── POST /auth/linked-identities/prepare-link ── */
+export const prepareLinkIdentity = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) throw new AuthenticationError("Not authenticated.", "NOT_AUTHENTICATED");
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, supabaseId: true }
+  });
+  if (!user || !user.email) throw new NotFoundError("User");
+
+  // Clean up any orphaned Supabase Auth accounts holding this email
+  if (user.supabaseId) {
+    try {
+      const { data: usersData, error } = await supabaseAdmin.auth.admin.listUsers();
+      if (!error && usersData?.users) {
+        const userEmail = user.email.toLowerCase();
+        const orphans = usersData.users.filter(
+          (u: any) => u.email?.toLowerCase() === userEmail && u.id !== user.supabaseId
+        );
+        for (const orphan of orphans) {
+          await supabaseAdmin.auth.admin.deleteUser(orphan.id);
+        }
+      }
+    } catch (err) {
+      // Non-fatal if cleanup list fails
+    }
+  }
+
+  res.json({ success: true });
+});
+
 /* ── POST /auth/webhook (legacy — kept for backward compat) ── */
 export const handleWebhook = asyncHandler(async (req: Request, res: Response) => {
   const { email, fullName, schoolId, role } = req.body;

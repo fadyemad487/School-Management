@@ -71,6 +71,23 @@ function LinkedAccountsSection({ isAr }: { isAr: boolean }) {
 
   useEffect(() => {
     fetchIdentities();
+
+    // Recover from identity_already_exists URL error if redirected back with error
+    if (typeof window !== "undefined") {
+      const fullUrl = window.location.href;
+      if (fullUrl.includes("identity_already_exists")) {
+        api.post("/auth/linked-identities/prepare-link", {})
+          .then(() => {
+            alert(
+              isAr
+                ? "تم إزالة تعارض الحساب السابق بنجاح. يرجى الضغط على زر 'ربط الحساب' مرة أخرى الآن لتأكيد الربط."
+                : "Previous account conflict cleared. Please click 'Link Account' again now to complete linking."
+            );
+            window.history.replaceState({}, document.title, window.location.pathname + "?tab=account");
+          })
+          .catch(() => {});
+      }
+    }
   }, []);
 
   const isLinked = (provider: string) => {
@@ -80,6 +97,9 @@ function LinkedAccountsSection({ isAr }: { isAr: boolean }) {
   const handleLink = async (provider: string) => {
     setActionLoading(provider);
     try {
+      // 1. Prepare backend: clean up any orphaned accounts holding this email
+      await api.post("/auth/linked-identities/prepare-link", { provider }).catch(() => {});
+
       sessionStorage.setItem("edu_linked_account_in_progress", provider);
       const { error } = await supabase.auth.linkIdentity({
         provider: provider as any,
