@@ -61,7 +61,7 @@ export default function UpdatePasswordPage() {
     };
 
     const { data: { subscription } } = authClient.auth.onAuthStateChange((event, session) => {
-      if (event !== "PASSWORD_RECOVERY" || !session) return;
+      if (!session || (event !== "PASSWORD_RECOVERY" && !hasVerifiedPasswordRecovery())) return;
 
       setRecoveryState("checking");
       // Defer Auth SDK calls until after its auth-state callback releases its lock.

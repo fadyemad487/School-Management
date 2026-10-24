@@ -72,6 +72,10 @@ export function getPasswordRecoveryClient() {
   }
 
   if (!passwordRecoveryClient) {
+    const query = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const recoveryCallbackUrl = query.has("code") || query.get("type") === "recovery" || hash.get("type") === "recovery";
+
     passwordRecoveryClient = createClient(safeUrl, safeKey, {
       auth: {
         persistSession: true,
@@ -87,7 +91,9 @@ export function getPasswordRecoveryClient() {
     // Register immediately after client creation so callback processing cannot
     // emit PASSWORD_RECOVERY before the page effect subscribes.
     passwordRecoveryClient.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" && session) {
+      const recoveryCallbackSession = recoveryCallbackUrl &&
+        (event === "INITIAL_SESSION" || event === "SIGNED_IN");
+      if (session && (event === "PASSWORD_RECOVERY" || recoveryCallbackSession)) {
         try {
           window.sessionStorage.setItem(PASSWORD_RECOVERY_SESSION_KEY, "1");
         } catch {
@@ -106,7 +112,7 @@ export async function isVerifiedPasswordRecoverySession(session: {
   access_token: string;
   user: { id: string };
 } | null | undefined, authClient: typeof supabase = supabase) {
-  if (!session?.access_token || !session.user?.id) return false;
+  if (!hasVerifiedPasswordRecovery() || !session?.access_token || !session.user?.id) return false;
 
   try {
     const { data, error } = await authClient.auth.getClaims(session.access_token);
@@ -114,12 +120,12 @@ export async function isVerifiedPasswordRecoverySession(session: {
     if (
       error || !claims || claims.sub !== session.user.id || claims.role !== "authenticated" ||
       !(claims.aud === "authenticated" || (Array.isArray(claims.aud) && claims.aud.includes("authenticated"))) ||
-      !Array.isArray(claims.amr)
+      typeof claims.exp !== "number" || claims.exp <= Math.floor(Date.now() / 1000)
     ) return false;
 
-    // AMR records the methods used in the session. A refresh can add a
-    // token_refresh entry, so reject any session that still carries recovery.
-    return claims.amr.some((item) => Boolean(item) && typeof item === "object" && item.method === "recovery");
+    // The SDK callback marker proves this tab completed Supabase's recovery
+    // redirect. getClaims separately verifies the signature, expiry and user.
+    return true;
   } catch {
     return false;
   }
