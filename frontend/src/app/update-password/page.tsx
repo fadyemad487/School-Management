@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, GraduationCap } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
-import { AuthShell } from "@/components/auth/AuthShell";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { GlassPasswordInput } from "@/components/auth/GlassPasswordInput";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 
@@ -28,16 +29,24 @@ export default function UpdatePasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
-  // We should be logged in via the recovery link fragment (access_token)
-  // Supabase automatically parses this and creates a session.
-  
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("cv_theme");
+    setIsDark(savedTheme === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark((current) => {
+      const next = !current;
+      localStorage.setItem("cv_theme", next ? "dark" : "light");
+      return next;
+    });
+  };
+
   const form = useForm<z.infer<typeof updatePasswordSchema>>({
     resolver: zodResolver(updatePasswordSchema),
-    defaultValues: {
-      password: "",
-      confirmPassword: ""
-    }
+    defaultValues: { password: "", confirmPassword: "" }
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -53,77 +62,106 @@ export default function UpdatePasswordPage() {
         setError(updateError.message);
       } else {
         setSuccess(true);
-        // Give the user time to see the success message before redirecting
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 2000);
+        setTimeout(() => router.push("/dashboard"), 2000);
       }
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : (isAr ? "حصل خطأ، حاول مرة تانية." : "Something went wrong. Please try again."));
     } finally {
       setIsUpdating(false);
     }
   });
 
   return (
-    <AuthShell
-      variant="login" // We use login variant for standard size
-      title={isAr ? "إعادة تعيين كلمة المرور" : "Reset Password"}
-      subtitle={isAr ? "قم بإدخال كلمة المرور الجديدة لحسابك" : "Enter a new password for your account"}
-    >
-      {success ? (
-        <div style={{ textAlign: "center", padding: "32px 0" }}>
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(34, 197, 94, 0.2)", color: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-            <CheckCircle size={32} />
-          </div>
-          <h3 style={{ fontSize: "20px", fontWeight: 800, color: "#fff", marginBottom: "8px" }}>
-            {isAr ? "تم تغيير كلمة المرور بنجاح!" : "Password Reset Successfully!"}
-          </h3>
-          <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "32px" }}>
-            {isAr ? "جاري توجيهك إلى لوحة التحكم..." : "Redirecting you to the dashboard..."}
-          </p>
-          <div className="spinner-large" style={{ borderColor: "rgba(255,255,255,0.2)", borderLeftColor: "#fff", margin: "0 auto", width: 32, height: 32 }} />
+    <main className={`cv-reset-page${isDark ? " cv-reset-page--dark" : ""}`} dir={isAr ? "rtl" : "ltr"}>
+      <div className="cv-reset-topbar">
+        <Link href="/" className="cv-reset-brand" aria-label="EduControl home">
+          <span className="cv-reset-brand-mark"><GraduationCap size={21} strokeWidth={2.2} /></span>
+          <span>EduControl</span>
+        </Link>
+        <div className="cv-reset-tools">
+          <LanguageSwitcher appearance={isDark ? "onDark" : "onLight"} />
+          <ThemeToggle
+            isDark={isDark}
+            onToggle={toggleTheme}
+            labels={{ light: isAr ? "الوضع الفاتح" : "Switch to light mode", dark: isAr ? "الوضع الداكن" : "Switch to dark mode" }}
+          />
         </div>
-      ) : (
-        <form onSubmit={onSubmit}>
-          <div className="glass-input-group" style={{ marginBottom: "20px" }}>
-            <label>{isAr ? "كلمة المرور الجديدة" : "New Password"}</label>
-            <GlassPasswordInput placeholder="••••••••" {...form.register("password")}  />
-            <PasswordStrengthIndicator password={form.watch("password")} />
-            {form.formState.errors.password && (
-              <div className="field-error-inline error-shake">
-                <AlertCircle size={14} />
-                <span>{form.formState.errors.password.message}</span>
-              </div>
-            )}
-          </div>
+      </div>
 
-          <div className="glass-input-group">
-            <label>{isAr ? "تأكيد كلمة المرور" : "Confirm Password"}</label>
-            <GlassPasswordInput placeholder="••••••••" {...form.register("confirmPassword")}  />
-            {form.formState.errors.confirmPassword && (
-              <div className="field-error-inline error-shake">
-                <AlertCircle size={14} />
-                <span>{form.formState.errors.confirmPassword.message}</span>
-              </div>
-            )}
-          </div>
-
-          {error && <p className="error error-shake" style={{ marginBottom: "16px" }}>{error}</p>}
-          
-          <button type="submit" className={`btn-glass-primary ${isUpdating ? "btn-loading" : ""}`} disabled={isUpdating}>
-            {isUpdating ? (isAr ? "جاري التحديث..." : "Updating...") : (isAr ? "تحديث كلمة المرور" : "Update Password")}
-          </button>
-        </form>
-      )}
-
-      {!success && (
-        <p className="auth-bottom" style={{ color: "rgba(255,255,255,0.5)", marginTop: "24px", textAlign: "center" }}>
-          <Link className="glass-link" href="/login" style={{ fontWeight: 700, color: "#fff" }}>
-            {t('auth_return_login')}
+      <section className="cv-reset-content" dir={isAr ? "rtl" : "ltr"}>
+        <div className="cv-reset-panel">
+          <Link href="/login" className="cv-reset-back">
+            <ArrowLeft size={17} aria-hidden="true" />
+            <span>{isAr ? "العودة لتسجيل الدخول" : t("auth_return_login")}</span>
           </Link>
-        </p>
-      )}
-    </AuthShell>
+
+          <div className="cv-reset-heading">
+            <div className="cv-reset-icon"><span /></div>
+            <p className="cv-reset-eyebrow">{isAr ? "أمان حسابك" : "ACCOUNT SECURITY"}</p>
+            <h1>{isAr ? "اختار كلمة مرور جديدة" : "Choose a new password"}</h1>
+            <p className="cv-reset-subtitle">
+              {isAr ? "أنشئ كلمة مرور قوية لتأمين حسابك، وبعدها هتقدر تدخل لحسابك." : "Create a strong password for your account. You can sign in as soon as it's updated."}
+            </p>
+          </div>
+
+          {success ? (
+            <div className="cv-reset-success" role="status" aria-live="polite">
+              <div className="cv-reset-success-icon"><CheckCircle2 size={27} strokeWidth={2.2} /></div>
+              <div>
+                <h2>{isAr ? "كلمة المرور اتغيرت بنجاح" : "Password updated"}</h2>
+                <p>{isAr ? "جاري توجيهك إلى لوحة التحكم..." : "Taking you to your dashboard..."}</p>
+              </div>
+            </div>
+          ) : (
+            <form className="cv-reset-form" onSubmit={onSubmit}>
+              <div className="cv-reset-field">
+                <label htmlFor="new-password">{isAr ? "كلمة المرور الجديدة" : "New password"}</label>
+                <GlassPasswordInput
+                  id="new-password"
+                  autoComplete="new-password"
+                  placeholder={isAr ? "اكتب كلمة مرور جديدة" : "Enter a new password"}
+                  {...form.register("password")}
+                />
+                <PasswordStrengthIndicator password={form.watch("password")} />
+                {form.formState.errors.password && (
+                  <span className="cv-reset-field-error">
+                    <AlertCircle size={14} />
+                    {form.formState.errors.password.message}
+                  </span>
+                )}
+              </div>
+
+              <div className="cv-reset-field">
+                <label htmlFor="confirm-password">{isAr ? "تأكيد كلمة المرور" : "Confirm password"}</label>
+                <GlassPasswordInput
+                  id="confirm-password"
+                  autoComplete="new-password"
+                  placeholder={isAr ? "اكتب كلمة المرور مرة تانية" : "Re-enter your new password"}
+                  {...form.register("confirmPassword")}
+                />
+                {form.formState.errors.confirmPassword && (
+                  <span className="cv-reset-field-error">
+                    <AlertCircle size={14} />
+                    {form.formState.errors.confirmPassword.message}
+                  </span>
+                )}
+              </div>
+
+              {error && <p className="cv-reset-error" role="alert">{error}</p>}
+
+              <button type="submit" className="cv-reset-submit" disabled={isUpdating}>
+                {isUpdating ? (isAr ? "جاري التحديث..." : "Updating password...") : (isAr ? "حفظ كلمة المرور الجديدة" : "Save new password")}
+              </button>
+            </form>
+          )}
+
+          <p className="cv-reset-footnote">
+            {isAr ? "نصيحة: استخدم كلمة مرور مختلفة عن كلمات المرور الأخرى." : "For better security, use a password you don't use elsewhere."}
+          </p>
+        </div>
+      </section>
+
+      <footer className="cv-reset-footer">© {new Date().getFullYear()} EduControl</footer>
+    </main>
   );
 }
