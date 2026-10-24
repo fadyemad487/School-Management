@@ -6396,9 +6396,14 @@ ul {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  padding: 0;
+  border: 0;
   color: var(--reset-muted);
+  background: transparent;
   font-size: 13px;
   font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
   transition: color 150ms ease;
 }
 
@@ -6423,26 +6428,7 @@ ul {
   border: 1px solid rgba(125, 42, 232, 0.18);
   border-radius: 8px;
   background: rgba(125, 42, 232, 0.08);
-}
-
-.cv-reset-icon span {
-  width: 17px;
-  height: 20px;
-  position: relative;
-  border: 2px solid var(--cv-purple);
-  border-radius: 4px;
-}
-
-.cv-reset-icon span::before {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  top: -9px;
-  left: 2.5px;
-  border: 2px solid var(--cv-purple);
-  border-bottom: 0;
-  border-radius: 8px 8px 0 0;
+  color: var(--cv-purple);
 }
 
 .cv-reset-eyebrow {
@@ -6618,6 +6604,62 @@ ul {
   border: 1px solid rgba(34, 181, 115, 0.28);
   border-radius: 8px;
   background: rgba(34, 181, 115, 0.08);
+}
+
+.cv-reset-status,
+.cv-reset-invalid {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--reset-line);
+  border-radius: 8px;
+  color: var(--reset-muted);
+  background: var(--reset-bg);
+}
+
+.cv-reset-status p,
+.cv-reset-invalid p {
+  color: var(--reset-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.cv-reset-spinner {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border: 2px solid var(--reset-line);
+  border-top-color: var(--cv-purple);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.cv-reset-invalid {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  color: #d9364f;
+  background: rgba(217, 54, 79, 0.05);
+}
+
+.cv-reset-invalid > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.cv-reset-invalid > div {
+  flex: 1 1 220px;
+}
+
+.cv-reset-invalid h2 {
+  margin-bottom: 4px;
+  color: var(--reset-ink);
+  font-size: 14px;
+}
+
+.cv-reset-invalid .cv-reset-submit {
+  min-height: 42px;
+  margin-top: 6px;
 }
 
 .cv-reset-success-icon {

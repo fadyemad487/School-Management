@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentSession, supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getCurrentSession, hasPasswordRecoveryContext, PASSWORD_RECOVERY_SESSION_KEY, supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { clearRememberedSession, getRememberedSession, syncRememberedSession } from "@/lib/rememberedSession";
@@ -12,15 +12,20 @@ export type AuthUser = { id: string; email: string | undefined; fullName: string
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  isPasswordRecovery: boolean;
   logout: (reason?: string) => Promise<void>;
   refreshProfile: () => Promise<AuthUser | null>;
   setAuthUser: (user: AuthUser) => void;
+  completePasswordRecovery: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(hasPasswordRecoveryContext);
+  const passwordRecoveryRef = useRef(isPasswordRecovery);
   const [user, setUser] = useState<AuthUser | null>(() => {
+    if (hasPasswordRecoveryContext()) return null;
     if (typeof window !== "undefined") {
       try {
         const cached = localStorage.getItem("edu_auth_user") || sessionStorage.getItem("edu_auth_user");
@@ -33,6 +38,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const profileRequest = useRef<Promise<AuthUser | null> | null>(null);
   const router = useRouter();
 
+  const setPasswordRecovery = useCallback((active: boolean, verified = false) => {
+    passwordRecoveryRef.current = active;
+    setIsPasswordRecovery(active);
+    if (typeof window !== "undefined") {
+      if (active) {
+        if (verified) sessionStorage.setItem(PASSWORD_RECOVERY_SESSION_KEY, "1");
+      }
+      else sessionStorage.removeItem(PASSWORD_RECOVERY_SESSION_KEY);
+    }
+  }, []);
+
+  const clearCachedUser = useCallback(() => {
+    setUser(null);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("edu_auth_user");
+        sessionStorage.removeItem("edu_auth_user");
+      } catch (_) {}
+    }
+  }, []);
+
+  const completePasswordRecovery = useCallback(() => {
+    setPasswordRecovery(false);
+  }, [setPasswordRecovery]);
+
   const setAuthUser = useCallback((newUser: AuthUser) => {
     setUser(newUser);
     if (typeof window !== "undefined") {
@@ -43,8 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async (reason?: string) => {
+    setPasswordRecovery(false);
     await supabase.auth.signOut();
-    setUser(null);
+    clearCachedUser();
     clearRememberedSession();
     if (typeof window !== "undefined") {
       try {
@@ -60,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       router.replace("/login");
     }
-  }, [router]);
+  }, [clearCachedUser, router, setPasswordRecovery]);
 
   const fetchProfile = useCallback(async (): Promise<AuthUser | null> => {
     if (profileRequest.current) return profileRequest.current;
@@ -126,8 +157,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" && session) {
+        setPasswordRecovery(true, true);
+        clearCachedUser();
+        clearRememberedSession();
+        disconnectSocket();
+        setLoading(false);
+        return;
+      }
+
+      if (event === "SIGNED_IN" && session) {
+        setPasswordRecovery(false);
+        syncRememberedSession(session);
+        fetchProfile();
+      } else if (event === "TOKEN_REFRESHED" && session && !passwordRecoveryRef.current) {
+        syncRememberedSession(session);
+        fetchProfile();
+      } else if (event === "SIGNED_OUT") {
+        setPasswordRecovery(false);
+        clearCachedUser();
+        clearRememberedSession();
+        setLoading(false);
+        disconnectSocket();
+      }
+    });
+
     const initializeSession = async () => {
       let session = await getCurrentSession();
+
+      if (passwordRecoveryRef.current || hasPasswordRecoveryContext()) {
+        clearCachedUser();
+        clearRememberedSession();
+        setLoading(false);
+        return;
+      }
 
       if (!session) {
         const remembered = getRememberedSession();
@@ -156,29 +220,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initializeSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
-        syncRememberedSession(session);
-        fetchProfile();
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
-        clearRememberedSession();
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.removeItem("edu_auth_user");
-            sessionStorage.removeItem("edu_auth_user");
-          } catch (_) {}
-        }
-        setLoading(false);
-        disconnectSocket();
-      }
-    });
-
     return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+  }, [clearCachedUser, fetchProfile, setPasswordRecovery]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, refreshProfile: fetchProfile, setAuthUser }}>
+    <AuthContext.Provider value={{ user, loading, isPasswordRecovery, logout, refreshProfile: fetchProfile, setAuthUser, completePasswordRecovery }}>
       {children}
     </AuthContext.Provider>
   );

@@ -190,7 +190,7 @@ const AIChatAssistant = dynamic(
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { t, isAr } = useTranslation();
-  const { user, loading, logout, refreshProfile } = useAuth();
+  const { user, loading, isPasswordRecovery, logout, refreshProfile } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -312,10 +312,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
+    if (isPasswordRecovery) {
+      router.replace("/update-password");
+      return;
+    }
     if (!loading && !user) {
       router.push("/login");
     }
-  }, [user, loading, router]);
+  }, [isPasswordRecovery, user, loading, router]);
 
   useEffect(() => {
     setNavOpen(false);

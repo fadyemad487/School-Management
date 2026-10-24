@@ -53,6 +53,36 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return;
     }
 
+    // A password-recovery access token proves only that the user opened a
+    // recovery link. It must not authorize normal application/API access.
+    // Verify claims through Supabase before inspecting the authentication
+    // method; never trust an unverified JWT payload here.
+    const { data: claimsData, error: claimsError } = await supabaseAdmin.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims || claimsData.claims.sub !== authUser.id) {
+      logger.authEvent("failed", undefined, req.ip);
+      res.status(401).json({ success: false, message: "Unauthorized: Invalid or expired token" });
+      return;
+    }
+
+    const authMethods = Array.isArray(claimsData.claims.amr) ? claimsData.claims.amr : [];
+    const latestAuthMethod = authMethods
+      .filter((method): method is { method: string; timestamp: number } =>
+        Boolean(method) && typeof method === "object" &&
+        typeof method.method === "string" && typeof method.timestamp === "number"
+      )
+      .reduce<{ method: string; timestamp: number } | null>(
+        (latest, method) => !latest || method.timestamp > latest.timestamp ? method : latest,
+        null
+      );
+    if (latestAuthMethod?.method === "recovery") {
+      res.status(403).json({
+        success: false,
+        code: "PASSWORD_RECOVERY_ONLY",
+        message: "Update your password and sign in again to access this resource."
+      });
+      return;
+    }
+
     // Collect all candidate emails from authUser, identities, and metadata
     const candidateEmails = Array.from(
       new Set(

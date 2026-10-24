@@ -3,6 +3,33 @@ import { createClient, processLock } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
+export const PASSWORD_RECOVERY_SESSION_KEY = "edu_password_recovery";
+
+export function hasVerifiedPasswordRecovery() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return window.sessionStorage.getItem(PASSWORD_RECOVERY_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function hasPasswordRecoveryContext() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    if (hasVerifiedPasswordRecovery()) return true;
+    if (window.location.pathname !== "/update-password") return false;
+
+    const query = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    return query.has("code") || query.get("type") === "recovery" || hash.get("type") === "recovery";
+  } catch {
+    return false;
+  }
+}
+
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
   supabaseAnonKey && 

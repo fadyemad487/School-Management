@@ -6,14 +6,15 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ArrowLeft, CheckCircle2, GraduationCap } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, GraduationCap, KeyRound, ShieldAlert } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
+import { hasVerifiedPasswordRecovery, PASSWORD_RECOVERY_SESSION_KEY, supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { GlassPasswordInput } from "@/components/auth/GlassPasswordInput";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { useAuth } from "@/components/shared/AuthProvider";
 
 const updatePasswordSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -26,14 +27,45 @@ const updatePasswordSchema = z.object({
 export default function UpdatePasswordPage() {
   const { t, isAr } = useTranslation();
   const router = useRouter();
+  const { logout } = useAuth();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [recoveryState, setRecoveryState] = useState<"checking" | "ready" | "invalid">("checking");
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("cv_theme");
     setIsDark(savedTheme === "dark");
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "PASSWORD_RECOVERY" || !session) return;
+
+      sessionStorage.setItem(PASSWORD_RECOVERY_SESSION_KEY, "1");
+      setRecoveryState("ready");
+      window.history.replaceState(null, "", window.location.pathname);
+    });
+
+    const verifyRecoverySession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!active) return;
+
+      if (session && hasVerifiedPasswordRecovery()) {
+        setRecoveryState("ready");
+        window.history.replaceState(null, "", window.location.pathname);
+      } else {
+        setRecoveryState("invalid");
+      }
+    };
+
+    verifyRecoverySession();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -54,6 +86,12 @@ export default function UpdatePasswordPage() {
     setIsUpdating(true);
 
     try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || recoveryState !== "ready" || !session || !hasVerifiedPasswordRecovery()) {
+        setRecoveryState("invalid");
+        return;
+      }
+
       const { error: updateError } = await supabase.auth.updateUser({
         password: values.password
       });
@@ -62,7 +100,11 @@ export default function UpdatePasswordPage() {
         setError(updateError.message);
       } else {
         setSuccess(true);
-        setTimeout(() => router.push("/dashboard"), 2000);
+        // End the recovery session so it cannot silently become a dashboard
+        // login. The user must authenticate again with the new password.
+        sessionStorage.removeItem(PASSWORD_RECOVERY_SESSION_KEY);
+        await supabase.auth.signOut().catch(() => undefined);
+        setTimeout(() => router.replace("/login?auth=login"), 2500);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : (isAr ? "حصل خطأ، حاول مرة تانية." : "Something went wrong. Please try again."));
@@ -70,6 +112,10 @@ export default function UpdatePasswordPage() {
       setIsUpdating(false);
     }
   });
+
+  const returnToSignIn = () => {
+    void logout();
+  };
 
   return (
     <main className={`cv-reset-page${isDark ? " cv-reset-page--dark" : ""}`} dir={isAr ? "rtl" : "ltr"}>
@@ -90,13 +136,13 @@ export default function UpdatePasswordPage() {
 
       <section className="cv-reset-content" dir={isAr ? "rtl" : "ltr"}>
         <div className="cv-reset-panel">
-          <Link href="/login" className="cv-reset-back">
+          <button type="button" onClick={returnToSignIn} className="cv-reset-back">
             <ArrowLeft size={17} aria-hidden="true" />
             <span>{isAr ? "العودة لتسجيل الدخول" : t("auth_return_login")}</span>
-          </Link>
+          </button>
 
           <div className="cv-reset-heading">
-            <div className="cv-reset-icon"><span /></div>
+            <div className="cv-reset-icon"><KeyRound size={23} strokeWidth={2} /></div>
             <p className="cv-reset-eyebrow">{isAr ? "أمان حسابك" : "ACCOUNT SECURITY"}</p>
             <h1>{isAr ? "اختار كلمة مرور جديدة" : "Choose a new password"}</h1>
             <p className="cv-reset-subtitle">
@@ -104,12 +150,28 @@ export default function UpdatePasswordPage() {
             </p>
           </div>
 
-          {success ? (
+          {recoveryState === "checking" ? (
+            <div className="cv-reset-status" role="status" aria-live="polite">
+              <span className="cv-reset-spinner" />
+              <p>{isAr ? "بنتأكد من رابط الاستعادة..." : "Verifying your recovery link..."}</p>
+            </div>
+          ) : recoveryState === "invalid" ? (
+            <div className="cv-reset-invalid" role="alert">
+              <ShieldAlert size={22} />
+              <div>
+                <h2>{isAr ? "رابط الاستعادة غير صالح" : "Recovery link unavailable"}</h2>
+                <p>{isAr ? "افتح أحدث رابط وصل لبريدك الإلكتروني، أو ارجع لتسجيل الدخول واطلب رابطًا جديدًا." : "Open the latest recovery email, or return to sign in and request a new link."}</p>
+              </div>
+              <button type="button" onClick={returnToSignIn} className="cv-reset-submit">
+                {isAr ? "العودة لتسجيل الدخول" : t("auth_return_login")}
+              </button>
+            </div>
+          ) : success ? (
             <div className="cv-reset-success" role="status" aria-live="polite">
               <div className="cv-reset-success-icon"><CheckCircle2 size={27} strokeWidth={2.2} /></div>
               <div>
                 <h2>{isAr ? "كلمة المرور اتغيرت بنجاح" : "Password updated"}</h2>
-                <p>{isAr ? "جاري توجيهك إلى لوحة التحكم..." : "Taking you to your dashboard..."}</p>
+                <p>{isAr ? "سجّل دخولك بكلمة المرور الجديدة للمتابعة." : "Sign in with your new password to continue."}</p>
               </div>
             </div>
           ) : (
