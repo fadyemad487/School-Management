@@ -209,7 +209,11 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_PRIVATE_SERVICE_ROLE_KEY
 SUPABASE_JWT_SECRET=YOUR_PRIVATE_JWT_SECRET
 REDIS_URL=OPTIONAL_REDIS_CONNECTION_URL
 OPENROUTER_API_KEY=OPTIONAL_PRIVATE_AI_KEY
+OPENROUTER_MODEL=recursive/flint-v1.0:free
+OPENROUTER_MAX_TOKENS=4096
 ```
+
+The AI model and response-token limit can be changed in Railway without a code edit. Free OpenRouter models have usage limits and availability can vary; use a paid model ID if you need more consistent production capacity.
 
 The backend refuses to start in production when `SUPABASE_JWT_SECRET` is missing or uses an insecure development fallback.
 

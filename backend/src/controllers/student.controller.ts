@@ -8,6 +8,7 @@ import { ValidationError } from "../utils/AppError";
 import { getIO } from "../config/websocket";
 import { clearDashboardCache } from "./dashboard.controller";
 import crypto from "crypto";
+import { OPENROUTER_MAX_TOKENS, OPENROUTER_MODEL } from "../utils/openrouter";
 
 // Helper for password
 function generateRandomPassword(length = 6): string {
@@ -438,7 +439,7 @@ export const studentMobileAiChat = asyncHandler(async (req: Request, res: Respon
 
   const response = await axios.post(
     "https://openrouter.ai/api/v1/chat/completions",
-    { model: "openai/gpt-4o-mini", messages },
+    { model: OPENROUTER_MODEL, messages, max_tokens: OPENROUTER_MAX_TOKENS },
     { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
   );
 

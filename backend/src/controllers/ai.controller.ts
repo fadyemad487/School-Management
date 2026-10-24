@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { asyncHandler } from "../utils/asyncHandler";
 import { requireSid } from "../utils/tenant";
 import { getIO } from "../config/websocket";
+import { OPENROUTER_MAX_TOKENS, OPENROUTER_MODEL } from "../utils/openrouter";
 
 export const getAIChatHistory = asyncHandler(async (req: Request, res: Response) => {
   try {
@@ -289,7 +290,7 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
 
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
-      { model: "openai/gpt-4o-mini", messages, tools, tool_choice: "auto" },
+      { model: OPENROUTER_MODEL, messages, tools, tool_choice: "auto", max_tokens: OPENROUTER_MAX_TOKENS },
       { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } }
     );
 
@@ -501,10 +502,11 @@ export const chatWithAI = asyncHandler(async (req: Request, res: Response) => {
       const nextResponse = await axios.post(
         "https://openrouter.ai/api/v1/chat/completions",
         {
-          model: "openai/gpt-4o-mini",
+          model: OPENROUTER_MODEL,
           messages,
           tools,
-          tool_choice: "auto"
+          tool_choice: "auto",
+          max_tokens: OPENROUTER_MAX_TOKENS
         },
         {
           headers: {
