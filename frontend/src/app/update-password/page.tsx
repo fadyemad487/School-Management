@@ -8,7 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, ArrowLeft, CheckCircle2, GraduationCap, ShieldCheck, ShieldAlert } from "lucide-react";
 
-import { hasVerifiedPasswordRecovery, isVerifiedPasswordRecoverySession, PASSWORD_RECOVERY_SESSION_KEY, supabase } from "@/lib/supabase";
+import { getPasswordRecoveryClient, hasVerifiedPasswordRecovery, isVerifiedPasswordRecoverySession, PASSWORD_RECOVERY_SESSION_KEY, supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -34,6 +34,7 @@ export default function UpdatePasswordPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [recoveryState, setRecoveryState] = useState<"checking" | "ready" | "invalid">("checking");
+  const [recoveryClient, setRecoveryClient] = useState<typeof supabase | null>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("cv_theme");
@@ -42,8 +43,11 @@ export default function UpdatePasswordPage() {
 
   useEffect(() => {
     let active = true;
-    const validateRecoverySession = async (session: Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]) => {
-      const verified = await isVerifiedPasswordRecoverySession(session);
+    const authClient = getPasswordRecoveryClient();
+    setRecoveryClient(authClient);
+
+    const validateRecoverySession = async (session: Awaited<ReturnType<typeof authClient.auth.getSession>>["data"]["session"]) => {
+      const verified = await isVerifiedPasswordRecoverySession(session, authClient);
       if (!active) return;
 
       if (verified) {
@@ -56,7 +60,7 @@ export default function UpdatePasswordPage() {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = authClient.auth.onAuthStateChange((event, session) => {
       if (event !== "PASSWORD_RECOVERY" || !session) return;
 
       setRecoveryState("checking");
@@ -65,7 +69,7 @@ export default function UpdatePasswordPage() {
     });
 
     const verifyRecoverySession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await authClient.auth.getSession();
       if (!active) return;
       await validateRecoverySession(session);
     };
@@ -96,16 +100,22 @@ export default function UpdatePasswordPage() {
     setIsUpdating(true);
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const authClient = recoveryClient;
+      if (!authClient || recoveryState !== "ready" || !hasVerifiedPasswordRecovery()) {
+        setRecoveryState("invalid");
+        return;
+      }
+
+      const { data: { session: recoverySession }, error: recoverySessionError } = await authClient.auth.getSession();
       if (
-        sessionError || recoveryState !== "ready" || !session || !hasVerifiedPasswordRecovery() ||
-        !(await isVerifiedPasswordRecoverySession(session))
+        recoverySessionError || !recoverySession ||
+        !(await isVerifiedPasswordRecoverySession(recoverySession, authClient))
       ) {
         setRecoveryState("invalid");
         return;
       }
 
-      const { error: updateError } = await supabase.auth.updateUser({
+      const { error: updateError } = await authClient.auth.updateUser({
         password: values.password
       });
 
@@ -116,6 +126,7 @@ export default function UpdatePasswordPage() {
         // End the recovery session so it cannot silently become a dashboard
         // login. The user must authenticate again with the new password.
         sessionStorage.removeItem(PASSWORD_RECOVERY_SESSION_KEY);
+        await authClient.auth.signOut().catch(() => undefined);
         await supabase.auth.signOut().catch(() => undefined);
         setTimeout(() => router.replace("/login?auth=login"), 2500);
       }
@@ -126,8 +137,9 @@ export default function UpdatePasswordPage() {
     }
   });
 
-  const returnToSignIn = () => {
-    void logout();
+  const returnToSignIn = async () => {
+    if (recoveryClient) await recoveryClient.auth.signOut().catch(() => undefined);
+    await logout();
   };
 
   return (

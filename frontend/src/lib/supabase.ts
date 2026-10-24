@@ -40,6 +40,7 @@ export const isSupabaseConfigured = Boolean(
 // Avoid runtime crash when env vars are missing during first run.
 const safeUrl = isSupabaseConfigured ? supabaseUrl : "https://placeholder.supabase.co";
 const safeKey = isSupabaseConfigured ? supabaseAnonKey : "placeholder-anon-key";
+const isPasswordRecoveryRoute = typeof window !== "undefined" && window.location.pathname === "/update-password";
 
 /**
  * Keep the authenticated session only for the lifetime of the current browser
@@ -55,19 +56,60 @@ export const supabase = createClient(safeUrl, safeKey, {
     lock: processLock,
     lockAcquireTimeout: 10_000,
     storage: typeof window === "undefined" ? undefined : window.localStorage,
+    // The recovery page processes its callback with an isolated client below.
+    // This prevents the shared app session from consuming the reset URL first.
+    detectSessionInUrl: !isPasswordRecoveryRoute,
   },
 });
+
+let passwordRecoveryClient: typeof supabase | null = null;
+
+/** A tab-scoped Auth client keeps recovery links from signing in or navigating
+ * other tabs that share the app's regular localStorage-backed session. */
+export function getPasswordRecoveryClient() {
+  if (typeof window === "undefined") {
+    throw new Error("Password recovery Auth client is only available in the browser.");
+  }
+
+  if (!passwordRecoveryClient) {
+    passwordRecoveryClient = createClient(safeUrl, safeKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.sessionStorage,
+        storageKey: "educontrol-password-recovery-auth",
+        lock: processLock,
+        lockAcquireTimeout: 10_000,
+      },
+    });
+
+    // Register immediately after client creation so callback processing cannot
+    // emit PASSWORD_RECOVERY before the page effect subscribes.
+    passwordRecoveryClient.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" && session) {
+        try {
+          window.sessionStorage.setItem(PASSWORD_RECOVERY_SESSION_KEY, "1");
+        } catch {
+          // The signed token is still verified before enabling password update.
+        }
+      }
+    });
+  }
+
+  return passwordRecoveryClient;
+}
 
 /** Verify, rather than trusting the client-editable sessionStorage marker, that
  * this session's signed Supabase token was actually issued for password recovery. */
 export async function isVerifiedPasswordRecoverySession(session: {
   access_token: string;
   user: { id: string };
-} | null | undefined) {
+} | null | undefined, authClient: typeof supabase = supabase) {
   if (!session?.access_token || !session.user?.id) return false;
 
   try {
-    const { data, error } = await supabase.auth.getClaims(session.access_token);
+    const { data, error } = await authClient.auth.getClaims(session.access_token);
     const claims = data?.claims;
     if (
       error || !claims || claims.sub !== session.user.id || claims.role !== "authenticated" ||
