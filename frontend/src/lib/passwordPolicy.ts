@@ -6,6 +6,6 @@ export function isStrongPassword(password: string) {
 
 export function passwordPolicyMessage(isAr: boolean) {
   return isAr
-    ? "كلمة المرور لازم تكون 8 أحرف على الأقل وبحد أقصى 128، وتحتوي على حرف صغير وحرف كبير ورقم ورمز خاص."
-    : "Use 8–128 characters with at least one lowercase letter, uppercase letter, number, and symbol.";
+    ? "أنشئ كلمة مرور من 8 أحرف على الأقل، تتضمن حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا خاصًا."
+    : "Create a password with at least 8 characters, including uppercase and lowercase letters, a number, and a symbol.";
 }
