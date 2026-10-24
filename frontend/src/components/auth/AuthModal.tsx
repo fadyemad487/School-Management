@@ -395,8 +395,8 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
 
       setSuccessMsg(
         isAr
-          ? "لو البريد مرتبط بحساب، هيوصلك عليه رابط استعادة كلمة المرور. 📩"
-          : "If an account exists for this email, a password recovery link will arrive shortly. 📩"
+          ? "لو بريدك مسجل، هيوصلك رابط إعادة تعيين كلمة المرور قريبًا."
+          : "If your email is registered, you’ll receive a reset link shortly."
       );
     } catch (err: any) {
       setGeneralError(err.message || "An unexpected error occurred");
