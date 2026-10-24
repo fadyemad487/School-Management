@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { GraduationCap } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -12,9 +13,6 @@ const AuthModal = dynamic(() => import("@/components/auth/AuthModal").then((m) =
 });
 
 /* ── SVG Icons (inline for zero deps) ── */
-const BrandIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round"/><path d="M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-);
 const ChevIcon = () => (
   <svg className="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
 );
@@ -114,7 +112,7 @@ export default function LandingPage({ initialAuthOpen = false, initialAuthMode =
       <header className={`cv-header ${scrolled ? "scrolled" : ""}`}>
         <div className="wrap cv-nav">
           <Link href="/" className="cv-brand disp">
-            <span className="cv-brand-mark"><BrandIcon /></span>
+            <span className="cv-brand-mark"><GraduationCap size={21} strokeWidth={2.2} aria-hidden="true" /></span>
             EduControl
           </Link>
 
@@ -429,7 +427,7 @@ export default function LandingPage({ initialAuthOpen = false, initialAuthMode =
           <div className="cv-foot-top">
             <div className="cv-foot-brand">
               <Link href="/" className="cv-brand disp" style={{ color: "#fff" }}>
-                <span className="cv-brand-mark"><BrandIcon /></span>
+                <span className="cv-brand-mark"><GraduationCap size={21} strokeWidth={2.2} aria-hidden="true" /></span>
                 EduControl
               </Link>
               <p>{isAr ? "نظام إدارة مدرسي بيربط الإدارة والمعلمين وأولياء الأمور في مكان واحد." : "A school management system that keeps admins, teachers, and parents on the same page."}</p>

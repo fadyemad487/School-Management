@@ -534,7 +534,7 @@ ul {
 .cv-brand-mark {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 8px;
   flex: none;
   background: var(--cv-grad);
   display: flex;
@@ -543,8 +543,8 @@ ul {
 }
 
 .cv-brand-mark svg {
-  width: 19px;
-  height: 19px;
+  width: 21px;
+  height: 21px;
 }
 
 .cv-nav-links {
