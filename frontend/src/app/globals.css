@@ -6315,6 +6315,20 @@ ul {
   --reset-field: #111920;
 }
 
+body:has(.cv-reset-page) {
+  zoom: 1;
+  background: #f5f7fa;
+}
+
+html:has(.cv-reset-page) {
+  background: #f5f7fa;
+}
+
+body:has(.cv-reset-page--dark),
+html:has(.cv-reset-page--dark) {
+  background: #10161c;
+}
+
 .cv-reset-topbar {
   position: relative;
   z-index: 2;
