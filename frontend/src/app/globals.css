@@ -6292,7 +6292,9 @@ ul {
   --reset-muted: #65717c;
   --reset-line: #dfe5eb;
   --reset-field: #ffffff;
-  min-height: 100svh;
+  /* body is globally zoomed to 80%; compensate the page height so the
+     scaled reset screen still fills the visible viewport. */
+  min-height: 125svh;
   display: flex;
   flex-direction: column;
   color: var(--reset-ink);
@@ -6316,7 +6318,6 @@ ul {
 }
 
 body:has(.cv-reset-page) {
-  zoom: 1;
   background: #f5f7fa;
 }
 
