@@ -104,11 +104,19 @@ Current application protections include:
 - Set `FRONTEND_URL` on Railway to the exact deployed frontend URL. Multiple explicit origins can be comma-separated when needed.
 - Rotate credentials immediately if a secret is ever exposed.
 
+### October 2026 platform security actions
+
+- Node.js 20 is not used for new deployments. Frontend and backend builds target Node.js 22; Docker images use the patched `22.23.4-alpine3.24` runtime. Vercel-managed Node 22 receives patch updates from Vercel, while self-built containers must be rebuilt and redeployed to take runtime patches.
+- This repository contains no PHP application or PHP runtime, so PHP security releases do not require a project change.
+- Railway recommends rotating sensitive variables stored before October 21, 2026, and reviewing GitHub app access/audit logs and database public network exposure. Rotate the credentials themselves at their issuer (Supabase, Redis, OpenRouter, etc.), then update Railway variables and redeploy.
+- For the April 2026 Vercel incident, review Vercel activity logs and recent deployments, enable MFA/passkeys and deployment protection, and rotate any non-sensitive secrets stored in Vercel before that incident. Mark future secret variables as sensitive.
+- These platform-account and credential actions cannot be completed by a source-code change. Do not treat the runtime update alone as confirmation that all credentials or accounts are secure.
+
 ## Local development
 
 ### Prerequisites
 
-- Node.js 20 or newer
+- Node.js 22.x (22.23.4 or newer patched 22.x)
 - npm
 - A Supabase project
 
@@ -170,6 +178,7 @@ NGINX routes `/api/*` and `/socket.io/*` to the backend and all other paths to t
 ### Frontend: Vercel
 
 The Next.js frontend is deployed from GitHub to Vercel. Pushing a frontend change to the configured production branch triggers an automatic deployment.
+The `engines.node` setting selects Vercel's Node.js 22 runtime; Vercel manages its patch updates.
 
 Required frontend environment variables:
 
@@ -184,6 +193,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 ### Backend: Railway
 
 The Express backend is deployed from GitHub to Railway. A push triggers Railway's configured build and deployment process.
+The `engines.node` setting selects Node.js 22 for Railway builds, and the Docker image is pinned to patched Node.js 22.23.4 on Alpine 3.24.
 
 Required backend environment variables:
 

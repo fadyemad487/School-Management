@@ -1,5 +1,5 @@
 # Stage 1: Build & compile TypeScript
-FROM node:20-alpine AS builder
+FROM node:22.23.4-alpine3.24 AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production runner
-FROM node:20-alpine AS runner
+FROM node:22.23.4-alpine3.24 AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
