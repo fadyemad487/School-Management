@@ -112,7 +112,7 @@ export default function LandingPage({ initialAuthOpen = false, initialAuthMode =
       <header className={`cv-header ${scrolled ? "scrolled" : ""}`}>
         <div className="wrap cv-nav">
           <Link href="/" className="cv-brand disp">
-            <span className="cv-brand-mark"><GraduationCap size={21} strokeWidth={2.2} aria-hidden="true" /></span>
+            <span className="cv-brand-mark"><GraduationCap size={21} strokeWidth={2.2} color="#fff" aria-hidden="true" /></span>
             EduControl
           </Link>
 
@@ -427,7 +427,7 @@ export default function LandingPage({ initialAuthOpen = false, initialAuthMode =
           <div className="cv-foot-top">
             <div className="cv-foot-brand">
               <Link href="/" className="cv-brand disp" style={{ color: "#fff" }}>
-                <span className="cv-brand-mark"><GraduationCap size={21} strokeWidth={2.2} aria-hidden="true" /></span>
+                <span className="cv-brand-mark"><GraduationCap size={21} strokeWidth={2.2} color="#fff" aria-hidden="true" /></span>
                 EduControl
               </Link>
               <p>{isAr ? "نظام إدارة مدرسي بيربط الإدارة والمعلمين وأولياء الأمور في مكان واحد." : "A school management system that keeps admins, teachers, and parents on the same page."}</p>
