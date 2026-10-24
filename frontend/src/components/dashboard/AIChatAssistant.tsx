@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, BrainCircuit, Activity, RotateCcw, Menu, MessageSquarePlus, History, Trash2, Lock, Unlock, Key, ShieldCheck } from "lucide-react";
+import { X, Send, BrainCircuit, Activity, RotateCcw, Menu, MessageSquarePlus, History, Trash2, LockKeyhole, Key, ShieldCheck } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/components/shared/AuthProvider";
 import { api } from "@/lib/api";
@@ -435,24 +435,23 @@ export function AIChatAssistant({ isOpen, onClose, theme }: { isOpen: boolean; o
                     textAlign: "center"
                   }}
                 >
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ repeat: Infinity, duration: 3 }}
+                  <div
+                    aria-hidden="true"
                     style={{
-                      width: "100px",
-                      height: "100px",
-                      borderRadius: "30px",
-                      background: "rgba(124, 58, 237, 0.1)",
+                      width: "52px",
+                      height: "52px",
+                      borderRadius: "16px",
+                      background: isDarkMode ? "rgba(124, 58, 237, 0.14)" : "#f3e8ff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      marginBottom: "30px",
-                      border: "1px solid rgba(124, 58, 237, 0.2)",
-                      boxShadow: "0 0 40px rgba(124, 58, 237, 0.1)"
+                      marginBottom: "20px",
+                      border: `1px solid ${isDarkMode ? "rgba(167, 139, 250, 0.2)" : "#e9d5ff"}`,
+                      color: isDarkMode ? "#c4b5fd" : "#7c3aed"
                     }}
                   >
-                    <Lock size={40} color="rgb(124, 58, 237)" />
-                  </motion.div>
+                    <LockKeyhole size={23} strokeWidth={1.8} />
+                  </div>
 
                   <h3 style={{ color: isDarkMode ? "#fff" : "#0f172a", fontSize: "20px", fontWeight: 800, marginBottom: "12px" }}>
                     {hasAIPassword === false 
@@ -525,7 +524,7 @@ export function AIChatAssistant({ isOpen, onClose, theme }: { isOpen: boolean; o
                       }}
                     >
                       {isVerifying ? (
-                        <RotateCcw size={16} className="animate-spin" />
+                        <span className="cv-spinner-sm" aria-label={isAr ? "جاري التحقق" : "Verifying"} />
                       ) : (
                         <>
                           <ShieldCheck size={18} />
