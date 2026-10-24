@@ -6,6 +6,6 @@ export function isStrongPassword(password: string) {
 
 export function passwordPolicyMessage(isAr: boolean) {
   return isAr
-    ? "أنشئ كلمة مرور من 8 أحرف على الأقل، تتضمن حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا خاصًا."
-    : "Create a password with at least 8 characters, including uppercase and lowercase letters, a number, and a symbol.";
+    ? "اختر كلمة مرور قوية للحفاظ على أمان حسابك."
+    : "Choose a strong password to keep your account secure.";
 }
