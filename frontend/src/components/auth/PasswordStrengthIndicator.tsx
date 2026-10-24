@@ -14,11 +14,11 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
   if (!password) return null;
 
   const rules = [
-    { key: "min8", labelAr: "8+ أحرف", labelEn: "8+ chars", met: password.length >= 8 },
+    { key: "min8", labelAr: "8+ أحرف", labelEn: "8+ chars", met: password.length >= 8 && password.length <= 128 },
     { key: "lower", labelAr: "حروف صغيرة a-z", labelEn: "a-z", met: /[a-z]/.test(password) },
     { key: "upper", labelAr: "حروف كبيرة A-Z", labelEn: "A-Z", met: /[A-Z]/.test(password) },
     { key: "num", labelAr: "أرقام 0-9", labelEn: "0-9", met: /[0-9]/.test(password) },
-    { key: "symbol", labelAr: "رموز (!@#$)", labelEn: "Symbols (!@#$)", met: /[^a-zA-Z0-9]/.test(password) },
+    { key: "symbol", labelAr: "رموز (!@#$)", labelEn: "Symbols (!@#$)", met: /[^a-zA-Z0-9\s]/.test(password) },
   ];
 
   const metCount = rules.filter((r) => r.met).length;

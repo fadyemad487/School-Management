@@ -65,16 +65,9 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
 
     const authMethods = Array.isArray(claimsData.claims.amr) ? claimsData.claims.amr : [];
-    const latestAuthMethod = authMethods
-      .filter((method): method is { method: string; timestamp: number } =>
-        Boolean(method) && typeof method === "object" &&
-        typeof method.method === "string" && typeof method.timestamp === "number"
-      )
-      .reduce<{ method: string; timestamp: number } | null>(
-        (latest, method) => !latest || method.timestamp > latest.timestamp ? method : latest,
-        null
-      );
-    if (latestAuthMethod?.method === "recovery") {
+    // Token refresh can add another AMR item; reject the session as long as
+    // the signed claim set still records password recovery.
+    if (authMethods.some((method) => Boolean(method) && typeof method === "object" && method.method === "recovery")) {
       res.status(403).json({
         success: false,
         code: "PASSWORD_RECOVERY_ONLY",

@@ -16,6 +16,7 @@ import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthInd
 import { AnimatedVectorHub } from "@/components/auth/AnimatedVectorHub";
 import { useAuth } from "@/components/shared/AuthProvider";
 import { persistRememberedSession } from "@/lib/rememberedSession";
+import { STRONG_PASSWORD_PATTERN, passwordPolicyMessage } from "@/lib/passwordPolicy";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="20" height="20">
@@ -41,10 +42,10 @@ const loginSchema = z.object({
 
 const latinRegex = /^[a-zA-Z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|`~-]+$/;
 
-const registerSchema = z.object({
+const buildRegisterSchema = (isAr: boolean) => z.object({
   name: z.string().min(2),
   email: z.string().email().regex(latinRegex, "English characters only"),
-  password: z.string().min(6).regex(latinRegex, "English characters only"),
+  password: z.string().min(8, passwordPolicyMessage(isAr)).max(128, passwordPolicyMessage(isAr)).regex(STRONG_PASSWORD_PATTERN, passwordPolicyMessage(isAr)).regex(latinRegex, "English characters only"),
   schoolId: z.string().min(3, "Invalid School ID").regex(/^[A-Za-z0-9\-_]+$/, "ID must be in English"),
   agree: z.boolean().refine((v) => v === true, "Required")
 });
@@ -63,6 +64,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
   const { t, isAr } = useTranslation();
   const router = useRouter();
   const { setAuthUser } = useAuth();
+  const registerSchema = buildRegisterSchema(isAr);
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -205,6 +207,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
   const registerName = registerForm.watch("name");
   const registerEmail = registerForm.watch("email");
   const registerPassword = registerForm.watch("password");
+  const registerPasswordError = registerForm.formState.errors.password?.message;
   const registerAgreeError = registerForm.formState.errors.agree?.message;
 
   const switchMode = (nextMode: "login" | "register" | "forgot") => {
@@ -379,18 +382,8 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
     setIsLoading(true);
 
     try {
-      // Step 1: Check if email is registered
-      const checkRes = await api.get(`/auth/check-school-email/${encodeURIComponent(email)}`);
-      if (checkRes.data?.data?.available) {
-        setGeneralError(
-          isAr
-            ? "هذا البريد الإلكتروني غير مسجل لدينا. الرجاء التأكد من كتابته بشكل صحيح."
-            : "This email is not registered. Please check and try again."
-        );
-        return;
-      }
-
-      // Step 2: Send reset password link via Supabase
+      // Supabase intentionally returns the same result for existing and
+      // unknown emails; don't pre-check the address and expose account state.
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`
       });
@@ -402,8 +395,8 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
 
       setSuccessMsg(
         isAr
-          ? "تم إرسال رابط استعادة كلمة السر إلى بريدك الإلكتروني بنجاح! 📩"
-          : "Recovery link sent to your email successfully! 📩"
+          ? "لو البريد مرتبط بحساب، هيوصلك عليه رابط استعادة كلمة المرور. 📩"
+          : "If an account exists for this email, a password recovery link will arrive shortly. 📩"
       );
     } catch (err: any) {
       setGeneralError(err.message || "An unexpected error occurred");
@@ -641,9 +634,11 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }: AuthModalP
                       <label>{isAr ? "كلمة المرور" : "Password"}</label>
                       <GlassPasswordInput
                         {...registerForm.register("password")}
+                        maxLength={128}
                         placeholder="••••••••"
                       />
                       <PasswordStrengthIndicator password={registerPassword || ""} />
+                      {registerPasswordError && <div className="cv-field-error"><AlertCircle size={14} /> {registerPasswordError}</div>}
                     </div>
 
                     <div className="cv-field-row">

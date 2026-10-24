@@ -58,6 +58,31 @@ export const supabase = createClient(safeUrl, safeKey, {
   },
 });
 
+/** Verify, rather than trusting the client-editable sessionStorage marker, that
+ * this session's signed Supabase token was actually issued for password recovery. */
+export async function isVerifiedPasswordRecoverySession(session: {
+  access_token: string;
+  user: { id: string };
+} | null | undefined) {
+  if (!session?.access_token || !session.user?.id) return false;
+
+  try {
+    const { data, error } = await supabase.auth.getClaims(session.access_token);
+    const claims = data?.claims;
+    if (
+      error || !claims || claims.sub !== session.user.id || claims.role !== "authenticated" ||
+      !(claims.aud === "authenticated" || (Array.isArray(claims.aud) && claims.aud.includes("authenticated"))) ||
+      !Array.isArray(claims.amr)
+    ) return false;
+
+    // AMR records the methods used in the session. A refresh can add a
+    // token_refresh entry, so reject any session that still carries recovery.
+    return claims.amr.some((item) => Boolean(item) && typeof item === "object" && item.method === "recovery");
+  } catch {
+    return false;
+  }
+}
+
 let sessionRequest: Promise<Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]> | null = null;
 
 /**

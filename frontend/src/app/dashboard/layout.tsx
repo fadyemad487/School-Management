@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { getSocket } from "@/lib/socket";
+import { isStrongPassword, passwordPolicyMessage } from "@/lib/passwordPolicy";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import type { LucideIcon } from "lucide-react";
 import {
   GraduationCap,
@@ -214,6 +216,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleUpdatePassword = async () => {
     if (!oldPassword || !newPasswordInModal) return;
+    if (!isStrongPassword(newPasswordInModal)) {
+      setPassModalStatus("error");
+      setPassModalError(passwordPolicyMessage(isAr));
+      return;
+    }
     setPassModalStatus("saving");
     setPassModalError(null);
     try {
@@ -939,6 +946,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       {showEyeNew ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
+                  <PasswordStrengthIndicator password={newPasswordInModal} />
                 </div>
               </div>
 

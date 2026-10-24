@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/shared/AuthProvider";
+import { isStrongPassword, passwordPolicyMessage } from "@/lib/passwordPolicy";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { LinkIcon, Unlink } from "lucide-react";
 
 // ─── OAuth Provider SVG Icons ──────────────────────────────────
@@ -397,12 +399,12 @@ export default function SettingsPage() {
     setPasswordStatus("saving");
     setPasswordError(null);
     try {
-      if (newPassword.trim().length < 6) throw new Error("Password must be at least 6 characters.");
+      if (!isStrongPassword(newPassword)) throw new Error(passwordPolicyMessage(isAr));
       
       // Artificial delay for better UX (so the user sees the animation)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const { error: err } = await supabase.auth.updateUser({ password: newPassword.trim() });
+      const { error: err } = await supabase.auth.updateUser({ password: newPassword });
       if (err) throw err;
       setPasswordStatus("success");
       setNewPassword("");
@@ -1220,10 +1222,11 @@ export default function SettingsPage() {
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
+                    <PasswordStrengthIndicator password={newPassword} />
                   </div>
                   <button
                     onClick={handlePasswordChange}
-                    disabled={passwordStatus === "saving" || !newPassword.trim()}
+                    disabled={passwordStatus === "saving" || !newPassword}
                     className="btn-glass"
                     style={{
                       display: "flex",

@@ -24,10 +24,12 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters.")
 });
 
+const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])[\s\S]+$/;
+
 const registerSchema = z.object({
   name: z.string().min(2, "School name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(6, "Password must be at least 6 characters."),
+  password: z.string().min(8).max(128).regex(strongPasswordPattern, "Password must be 8–128 characters and include lowercase, uppercase, a number, and a symbol."),
   schoolId: z.string().min(3, "School ID must be at least 3 characters.")
 });
 

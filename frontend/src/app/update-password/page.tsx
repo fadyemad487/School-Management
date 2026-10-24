@@ -8,16 +8,17 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, ArrowLeft, CheckCircle2, GraduationCap, ShieldCheck, ShieldAlert } from "lucide-react";
 
-import { hasVerifiedPasswordRecovery, PASSWORD_RECOVERY_SESSION_KEY, supabase } from "@/lib/supabase";
+import { hasVerifiedPasswordRecovery, isVerifiedPasswordRecoverySession, PASSWORD_RECOVERY_SESSION_KEY, supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { GlassPasswordInput } from "@/components/auth/GlassPasswordInput";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { useAuth } from "@/components/shared/AuthProvider";
+import { STRONG_PASSWORD_PATTERN, passwordPolicyMessage } from "@/lib/passwordPolicy";
 
-const updatePasswordSchema = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters"),
+const buildUpdatePasswordSchema = (isAr: boolean) => z.object({
+  password: z.string().min(8, passwordPolicyMessage(isAr)).max(128, passwordPolicyMessage(isAr)).regex(STRONG_PASSWORD_PATTERN, passwordPolicyMessage(isAr)),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -41,24 +42,32 @@ export default function UpdatePasswordPage() {
 
   useEffect(() => {
     let active = true;
+    const validateRecoverySession = async (session: Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]) => {
+      const verified = await isVerifiedPasswordRecoverySession(session);
+      if (!active) return;
+
+      if (verified) {
+        sessionStorage.setItem(PASSWORD_RECOVERY_SESSION_KEY, "1");
+        setRecoveryState("ready");
+        window.history.replaceState(null, "", window.location.pathname);
+      } else {
+        sessionStorage.removeItem(PASSWORD_RECOVERY_SESSION_KEY);
+        setRecoveryState("invalid");
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "PASSWORD_RECOVERY" || !session) return;
 
-      sessionStorage.setItem(PASSWORD_RECOVERY_SESSION_KEY, "1");
-      setRecoveryState("ready");
-      window.history.replaceState(null, "", window.location.pathname);
+      setRecoveryState("checking");
+      // Defer Auth SDK calls until after its auth-state callback releases its lock.
+      window.setTimeout(() => void validateRecoverySession(session), 0);
     });
 
     const verifyRecoverySession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!active) return;
-
-      if (session && hasVerifiedPasswordRecovery()) {
-        setRecoveryState("ready");
-        window.history.replaceState(null, "", window.location.pathname);
-      } else {
-        setRecoveryState("invalid");
-      }
+      await validateRecoverySession(session);
     };
 
     verifyRecoverySession();
@@ -76,6 +85,7 @@ export default function UpdatePasswordPage() {
     });
   };
 
+  const updatePasswordSchema = buildUpdatePasswordSchema(isAr);
   const form = useForm<z.infer<typeof updatePasswordSchema>>({
     resolver: zodResolver(updatePasswordSchema),
     defaultValues: { password: "", confirmPassword: "" }
@@ -87,7 +97,10 @@ export default function UpdatePasswordPage() {
 
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || recoveryState !== "ready" || !session || !hasVerifiedPasswordRecovery()) {
+      if (
+        sessionError || recoveryState !== "ready" || !session || !hasVerifiedPasswordRecovery() ||
+        !(await isVerifiedPasswordRecoverySession(session))
+      ) {
         setRecoveryState("invalid");
         return;
       }
@@ -183,6 +196,7 @@ export default function UpdatePasswordPage() {
                 <GlassPasswordInput
                   id="new-password"
                   autoComplete="new-password"
+                  maxLength={128}
                   placeholder={isAr ? "اكتب كلمة مرور جديدة" : "Enter a new password"}
                   {...form.register("password")}
                 />
@@ -200,6 +214,7 @@ export default function UpdatePasswordPage() {
                 <GlassPasswordInput
                   id="confirm-password"
                   autoComplete="new-password"
+                  maxLength={128}
                   placeholder={isAr ? "اكتب كلمة المرور مرة تانية" : "Re-enter your new password"}
                   {...form.register("confirmPassword")}
                 />
