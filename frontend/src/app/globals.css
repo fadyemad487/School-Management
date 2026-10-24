@@ -6369,14 +6369,26 @@ ul {
 
 .cv-reset-tools .cv-theme-toggle,
 .cv-reset-tools .lang-switcher__trigger {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--reset-line);
-  border-radius: 8px;
+  border: 1.5px solid var(--reset-line);
+  border-radius: 999px;
   color: var(--reset-ink);
   background: var(--reset-panel);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.cv-reset-tools .cv-theme-toggle:hover,
+.cv-reset-tools .lang-switcher__trigger:hover {
+  border-color: var(--cv-purple);
+  background: rgba(250, 250, 252, 0.9);
+}
+
+.cv-reset-page--dark .cv-reset-tools .cv-theme-toggle:hover,
+.cv-reset-page--dark .cv-reset-tools .lang-switcher__trigger:hover {
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .cv-reset-page .lang-switcher__trigger {
@@ -6393,7 +6405,7 @@ ul {
   margin: 14px;
   width: calc(100% - 28px);
   min-height: min(760px, calc(100svh - 150px));
-  padding: clamp(48px, 8vh, 88px) 20px;
+  padding: clamp(48px, 8vh, 88px) 20px 64px;
   overflow: hidden;
   border-radius: 28px;
   background: radial-gradient(circle at 50% 28%, rgba(243, 222, 251, 0.72), rgba(220, 235, 255, 0.32) 42%, #fff 82%);
@@ -6731,7 +6743,9 @@ ul {
 }
 
 .cv-reset-footer {
-  padding: 18px 20px 24px;
+  position: absolute;
+  inset-inline: 20px;
+  bottom: 18px;
   color: var(--reset-muted);
   font-size: 11px;
   text-align: center;
@@ -6755,7 +6769,7 @@ ul {
     width: calc(100% - 20px);
     min-height: calc(100svh - 132px);
     margin: 10px;
-    padding: 32px 14px;
+    padding: 32px 14px 58px;
     border-radius: 22px;
   }
 

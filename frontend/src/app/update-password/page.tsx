@@ -223,9 +223,9 @@ export default function UpdatePasswordPage() {
             {isAr ? "نصيحة: استخدم كلمة مرور مختلفة عن كلمات المرور الأخرى." : "For better security, use a password you don't use elsewhere."}
           </p>
         </div>
-      </section>
 
-      <footer className="cv-reset-footer">© {new Date().getFullYear()} EduControl</footer>
+        <footer className="cv-reset-footer">© {new Date().getFullYear()} EduControl</footer>
+      </section>
     </main>
   );
 }
