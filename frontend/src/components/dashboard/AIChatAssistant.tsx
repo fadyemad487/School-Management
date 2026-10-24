@@ -9,14 +9,14 @@ import { api } from "@/lib/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export function AIChatAssistant({ isOpen, onClose, theme }: { isOpen: boolean; onClose: () => void; theme: "light" | "dark" }) {
   const { isAr } = useTranslation();
   const { user } = useAuth();
   const schoolName = user?.school?.name || (isAr ? "إديو كنترول" : "EduControl");
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<{ role: "user" | "model"; parts: { text: string }[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const isDarkMode = theme === "dark";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // New States for Sessions
@@ -144,16 +144,6 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
   };
 
   useEffect(() => {
-    const checkTheme = () => {
-      setIsDarkMode(document.documentElement.classList.contains("dark"));
-    };
-    checkTheme();
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }
@@ -226,11 +216,11 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
               right: "20px",
               bottom: "20px",
               width: "450px",
-              background: "rgba(5, 5, 10, 0.9)",
+              background: isDarkMode ? "rgba(5, 5, 10, 0.96)" : "rgba(255, 255, 255, 0.98)",
               backdropFilter: "blur(50px)",
               borderRadius: "32px",
-              border: "1px solid rgba(255, 255, 255, 0.05)",
-              boxShadow: "-20px 0 80px rgba(0,0,0,0.8)",
+              border: `1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(15, 23, 42, 0.12)"}`,
+              boxShadow: isDarkMode ? "-20px 0 80px rgba(0,0,0,0.55)" : "-20px 0 60px rgba(15,23,42,0.18)",
               display: "flex",
               flexDirection: "column",
               pointerEvents: "auto",
@@ -261,10 +251,10 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
               />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <h2 style={{ color: "#fff", fontSize: "24px", fontWeight: 900, letterSpacing: "-1px" }}>EduControl</h2>
+                  <h2 style={{ color: isDarkMode ? "#fff" : "#0f172a", fontSize: "24px", fontWeight: 900, letterSpacing: "-1px" }}>EduControl</h2>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
                     <Activity size={14} color="rgb(124, 58, 237)" />
-                    <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px" }}>
+                    <span style={{ color: isDarkMode ? "rgba(255,255,255,0.55)" : "#64748b", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px" }}>
                       {isAr ? "المساعد الذكي نشط" : "AI Smart Assistant"}
                     </span>
                   </div>
@@ -277,12 +267,12 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                         width: "40px",
                         height: "40px",
                         borderRadius: "12px",
-                        background: isMenuOpen ? "rgba(124, 58, 237, 0.2)" : "rgba(255,255,255,0.05)",
-                        border: isMenuOpen ? "1px solid rgba(124, 58, 237, 0.4)" : "1px solid rgba(255,255,255,0.1)",
+                        background: isMenuOpen ? "rgba(124, 58, 237, 0.12)" : isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9",
+                        border: isMenuOpen ? "1px solid rgba(124, 58, 237, 0.4)" : `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: isMenuOpen ? "rgb(124, 58, 237)" : "rgba(255,255,255,0.5)",
+                        color: isMenuOpen ? "rgb(124, 58, 237)" : isDarkMode ? "rgba(255,255,255,0.65)" : "#475569",
                         cursor: "pointer",
                         transition: "all 0.2s"
                       }}
@@ -301,11 +291,11 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                             top: "50px",
                             right: 0,
                             width: "280px",
-                            background: "rgba(10, 10, 15, 0.95)",
+                            background: isDarkMode ? "rgba(10, 10, 15, 0.98)" : "rgba(255, 255, 255, 0.99)",
                             backdropFilter: "blur(20px)",
                             borderRadius: "16px",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+                            border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`,
+                            boxShadow: isDarkMode ? "0 10px 40px rgba(0,0,0,0.5)" : "0 10px 32px rgba(15,23,42,0.15)",
                             overflow: "hidden",
                             zIndex: 20
                           }}
@@ -318,10 +308,10 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                               display: "flex",
                               alignItems: "center",
                               gap: "10px",
-                              color: "#fff",
+                              color: isDarkMode ? "#fff" : "#0f172a",
                               background: "rgba(124, 58, 237, 0.1)",
                               border: "none",
-                              borderBottom: "1px solid rgba(255,255,255,0.05)",
+                              borderBottom: `1px solid ${isDarkMode ? "rgba(255,255,255,0.05)" : "#e2e8f0"}`,
                               cursor: "pointer",
                               textAlign: isAr ? "right" : "left",
                               fontSize: "14px",
@@ -342,11 +332,11 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                                   width: "100%",
                                   display: "flex",
                                   alignItems: "center",
-                                  borderBottom: index < sessions.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                                  background: currentSessionId === session.sessionId ? "rgba(255,255,255,0.05)" : "transparent",
+                                  borderBottom: index < sessions.length - 1 ? `1px solid ${isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9"}` : "none",
+                                  background: currentSessionId === session.sessionId ? (isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc") : "transparent",
                                   transition: "all 0.2s"
                                 }}
-                                onMouseOver={(e) => { if(currentSessionId !== session.sessionId) e.currentTarget.style.background = "rgba(255,255,255,0.05)" }}
+                                onMouseOver={(e) => { if(currentSessionId !== session.sessionId) e.currentTarget.style.background = isDarkMode ? "rgba(255,255,255,0.05)" : "#f8fafc" }}
                                 onMouseOut={(e) => { if(currentSessionId !== session.sessionId) e.currentTarget.style.background = "transparent" }}
                               >
                                 <button
@@ -357,7 +347,7 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                                     display: "flex",
                                     alignItems: "center",
                                     gap: "10px",
-                                    color: currentSessionId === session.sessionId ? "#fff" : "rgba(255,255,255,0.7)",
+                                    color: currentSessionId === session.sessionId ? (isDarkMode ? "#fff" : "#0f172a") : isDarkMode ? "rgba(255,255,255,0.7)" : "#475569",
                                     background: "transparent",
                                     border: "none",
                                     cursor: "pointer",
@@ -380,21 +370,21 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    color: "rgba(255,255,255,0.2)",
+                                    color: isDarkMode ? "rgba(255,255,255,0.35)" : "#94a3b8",
                                     background: "transparent",
                                     border: "none",
                                     cursor: "pointer",
                                     transition: "all 0.2s"
                                   }}
                                   onMouseOver={(e) => e.currentTarget.style.color = "#ef4444"}
-                                  onMouseOut={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.2)"}
+                                  onMouseOut={(e) => e.currentTarget.style.color = isDarkMode ? "rgba(255,255,255,0.35)" : "#94a3b8"}
                                 >
                                   <Trash2 size={14} />
                                 </button>
                               </div>
                             ))}
                             {sessions.length === 0 && (
-                              <div style={{ padding: "20px 16px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>
+                              <div style={{ padding: "20px 16px", textAlign: "center", color: isDarkMode ? "rgba(255,255,255,0.45)" : "#64748b", fontSize: "12px" }}>
                                 {isAr ? "لا يوجد محادثات سابقة" : "No previous chats"}
                               </div>
                             )}
@@ -410,17 +400,17 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                       width: "40px",
                       height: "40px",
                       borderRadius: "12px",
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(255,255,255,0.1)",
+                      background: isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9",
+                      border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "rgba(255,255,255,0.5)",
+                      color: isDarkMode ? "rgba(255,255,255,0.65)" : "#475569",
                       cursor: "pointer",
                       transition: "all 0.2s"
                     }}
                     onMouseOver={(e) => e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)"}
-                    onMouseOut={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                    onMouseOut={(e) => e.currentTarget.style.background = isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9"}
                   >
                     <X size={20} />
                   </button>
@@ -464,13 +454,13 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                     <Lock size={40} color="rgb(124, 58, 237)" />
                   </motion.div>
 
-                  <h3 style={{ color: "#fff", fontSize: "20px", fontWeight: 800, marginBottom: "12px" }}>
+                  <h3 style={{ color: isDarkMode ? "#fff" : "#0f172a", fontSize: "20px", fontWeight: 800, marginBottom: "12px" }}>
                     {hasAIPassword === false 
                       ? (isAr ? "تفعيل نظام الحماية" : "Activate Security System")
-                      : (isAr ? "نظام الحماية مفعل" : "AI Neural Lock Active")
+                      : (isAr ? "المساعد محمي" : "Assistant locked")
                     }
                   </h3>
-                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "30px", maxWidth: "300px", lineHeight: 1.6 }}>
+                  <p style={{ color: isDarkMode ? "rgba(255,255,255,0.6)" : "#64748b", fontSize: "14px", marginBottom: "30px", maxWidth: "300px", lineHeight: 1.6 }}>
                     {hasAIPassword === false
                       ? (isAr ? "يجب إنشاء كلمة مرور قوية للمساعد الذكي لأول مرة لحماية بيانات المدرسة." : "Set a master password for the AI Agent to protect your school data.")
                       : (isAr ? "يرجى إدخال كلمة مرور المساعد الذكي للمتابعة." : "Please enter the AI Agent master password to continue.")
@@ -479,7 +469,7 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
 
                   <div style={{ width: "100%", maxWidth: "300px", position: "relative" }}>
                     <div style={{ position: "relative" }}>
-                      <Key size={18} color="rgba(255,255,255,0.3)" style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
+                      <Key size={18} color={isDarkMode ? "rgba(255,255,255,0.45)" : "#64748b"} style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }} />
                       <input
                         type="password"
                         value={aiPasswordInput}
@@ -489,11 +479,11 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                         autoFocus
                         style={{
                           width: "100%",
-                          background: "rgba(255,255,255,0.03)",
-                          border: `1px solid ${securityError ? "rgba(239, 68, 68, 0.3)" : "rgba(255,255,255,0.1)"}`,
+                          background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc",
+                          border: `1px solid ${securityError ? "rgba(239, 68, 68, 0.5)" : isDarkMode ? "rgba(255,255,255,0.12)" : "#cbd5e1"}`,
                           borderRadius: "16px",
                           padding: "15px 15px 15px 45px",
-                          color: "#fff",
+                          color: isDarkMode ? "#fff" : "#0f172a",
                           fontSize: "15px",
                           outline: "none",
                           textAlign: isAr ? "right" : "left"
@@ -539,7 +529,7 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                       ) : (
                         <>
                           <ShieldCheck size={18} />
-                          {hasAIPassword === false ? (isAr ? "تأكيد وإنشاء" : "Initialize & Secure") : (isAr ? "فتح النظام" : "Unlock Neural Core")}
+                          {hasAIPassword === false ? (isAr ? "تأكيد وإنشاء" : "Set password") : (isAr ? "فتح المساعد" : "Unlock")}
                         </>
                       )}
                     </motion.button>
@@ -598,13 +588,13 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                   </motion.div>
 
                   <div>
-                    <h3 style={{ color: "#fff", fontSize: "22px", fontWeight: 900, marginBottom: "8px" }}>
+                    <h3 style={{ color: isDarkMode ? "#fff" : "#0f172a", fontSize: "22px", fontWeight: 900, marginBottom: "8px" }}>
                       {isAr ? `أهلاً بك في ${schoolName}` : `Welcome to ${schoolName}`}
                     </h3>
-                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", maxWidth: "280px", margin: "0 auto", lineHeight: 1.6 }}>
+                    <p style={{ color: isDarkMode ? "rgba(255,255,255,0.6)" : "#64748b", fontSize: "14px", maxWidth: "280px", margin: "0 auto", lineHeight: 1.6 }}>
                       {isAr
                         ? "وحدة التحكم الذكية جاهزة لتنفيذ أوامرك. ماذا تريد أن تنجز اليوم؟"
-                        : "The neural core is online. What would you like to achieve today?"}
+                        : "Ready when you are. What would you like to do?"}
                     </p>
                   </div>
 
@@ -625,9 +615,9 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                         style={{
                           padding: "8px 16px",
                           borderRadius: "12px",
-                          background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(255,255,255,0.05)",
-                          color: "rgba(255,255,255,0.6)",
+                          background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc",
+                          border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.08)" : "#e2e8f0"}`,
+                          color: isDarkMode ? "rgba(255,255,255,0.75)" : "#475569",
                           fontSize: "12px",
                           fontWeight: 600,
                           cursor: "pointer"
@@ -647,18 +637,18 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                   animate={{ opacity: 1, y: 0 }}
                   style={{ alignSelf: chat.role === "user" ? "flex-end" : "flex-start", maxWidth: "90%" }}
                 >
-                  <div style={{ color: chat.role === "user" ? "#fff" : "rgba(255,255,255,0.8)", fontSize: "15px", lineHeight: 1.7, textAlign: chat.role === "user" ? "right" : "left", display: "flex", flexDirection: "column", alignItems: chat.role === "user" ? "flex-end" : "flex-start" }}>
+                  <div style={{ color: chat.role === "user" ? (isDarkMode ? "#fff" : "#0f172a") : isDarkMode ? "rgba(255,255,255,0.85)" : "#334155", fontSize: "15px", lineHeight: 1.7, textAlign: chat.role === "user" ? "right" : "left", display: "flex", flexDirection: "column", alignItems: chat.role === "user" ? "flex-end" : "flex-start" }}>
                     {chat.role === "user" ? (
                       <span style={{ paddingBottom: "4px", borderBottom: "2px solid rgb(124, 58, 237)" }}>{chat.parts[0].text}</span>
                     ) : (
                       <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", width: "100%" }}>
-                        <div className="prose prose-invert max-w-none" style={{ background: "rgba(255,255,255,0.03)", padding: "20px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.05)", width: "100%", fontSize: "14px" }}>
+                        <div className={`prose ${isDarkMode ? "prose-invert" : "ai-assistant-prose-light"} max-w-none`} style={{ background: isDarkMode ? "rgba(255,255,255,0.03)" : "#f8fafc", padding: "20px", borderRadius: "20px", border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.08)" : "#e2e8f0"}`, width: "100%", fontSize: "14px" }}>
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
                             components={{
-                              table: ({node, ...props}) => <div style={{ overflowX: "auto", margin: "10px 0" }}><table style={{ width: "100%", borderCollapse: "collapse", background: "rgba(0,0,0,0.2)", borderRadius: "10px" }} {...props} /></div>,
-                              th: ({node, ...props}) => <th style={{ borderBottom: "1px solid rgba(255,255,255,0.1)", padding: "10px", textAlign: "right", color: "rgb(124, 58, 237)" }} {...props} />,
-                              td: ({node, ...props}) => <td style={{ padding: "10px", borderBottom: "1px solid rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.7)" }} {...props} />,
+                              table: ({node, ...props}) => <div style={{ overflowX: "auto", margin: "10px 0" }}><table style={{ width: "100%", borderCollapse: "collapse", background: isDarkMode ? "rgba(0,0,0,0.2)" : "#fff", borderRadius: "10px" }} {...props} /></div>,
+                              th: ({node, ...props}) => <th style={{ borderBottom: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "#e2e8f0"}`, padding: "10px", textAlign: "right", color: "rgb(124, 58, 237)" }} {...props} />,
+                              td: ({node, ...props}) => <td style={{ padding: "10px", borderBottom: `1px solid ${isDarkMode ? "rgba(255,255,255,0.05)" : "#f1f5f9"}`, color: isDarkMode ? "rgba(255,255,255,0.7)" : "#475569" }} {...props} />,
                               p: ({node, ...props}) => <p style={{ margin: "5px 0" }} {...props} />,
                               ul: ({node, ...props}) => <ul style={{ paddingRight: "20px", margin: "10px 0" }} {...props} />,
                               li: ({node, ...props}) => <li style={{ marginBottom: "5px" }} {...props} />
@@ -672,7 +662,7 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
                             whileHover={{ scale: 1.1, color: "#fff" }}
                             whileTap={{ scale: 0.9 }}
                             onClick={handleRetry}
-                            style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "5px" }}
+                            style={{ background: "transparent", border: "none", color: isDarkMode ? "rgba(255,255,255,0.5)" : "#64748b", cursor: "pointer", padding: "5px" }}
                             title={isAr ? "إعادة المحاولة" : "Retry"}
                           >
                             <RotateCcw size={16} />
@@ -693,21 +683,21 @@ export function AIChatAssistant({ isOpen, onClose }: { isOpen: boolean; onClose:
               )}
             </div>
 
-            <div style={{ padding: "30px", background: "rgba(0,0,0,0.2)" }}>
+            <div style={{ padding: "30px", background: isDarkMode ? "rgba(0,0,0,0.2)" : "#f8fafc", borderTop: `1px solid ${isDarkMode ? "rgba(255,255,255,0.06)" : "#e2e8f0"}` }}>
               <div style={{ position: "relative" }}>
                 <input
                   type="text"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder={isAr ? "اكتب استفسارك هنا..." : "Input neural command..."}
+                  placeholder={isAr ? "اكتب استفسارك هنا..." : "Ask a question..."}
                   style={{
                     width: "100%",
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: isDarkMode ? "rgba(255,255,255,0.03)" : "#fff",
+                    border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "#cbd5e1"}`,
                     borderRadius: "20px",
                     padding: "15px 50px 15px 20px",
-                    color: "#fff",
+                    color: isDarkMode ? "#fff" : "#0f172a",
                     fontSize: "15px",
                     outline: "none"
                   }}

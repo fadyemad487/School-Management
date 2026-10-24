@@ -870,7 +870,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         <div className="dashboard-content shell-main__body">{children}</div>
-        <AIChatAssistant isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
+        <AIChatAssistant isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} theme={theme} />
 
         {/* Password Change Modal */}
         {showPasswordModal && (
