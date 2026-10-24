@@ -27,7 +27,7 @@ export default function ContactPage() {
     const body = `Name: ${name}\nEmail: ${email}\nSchool: ${school || "Not provided"}\n\n${message}`;
 
     setSent(true);
-    window.location.href = `mailto:fadyemad487@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:fadyemad3020@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -49,11 +49,11 @@ export default function ContactPage() {
           <h1>{isAr ? "خلّينا نتواصل" : "Let’s talk"}</h1>
           <p>{isAr ? "سواء عندك سؤال، تحتاج مساعدة، أو تريد مشاركة فكرة، فريقنا جاهز للاستماع." : "Whether you have a question, need help, or want to share an idea, we are here to listen."}</p>
 
-          <a className={styles.emailCard} href="mailto:fadyemad487@gmail.com">
+          <a className={styles.emailCard} href="mailto:fadyemad3020@gmail.com">
             <span><Mail size={22} /></span>
             <div>
               <small>{isAr ? "راسلنا مباشرة" : "Email us directly"}</small>
-              <strong>fadyemad487@gmail.com</strong>
+              <strong>fadyemad3020@gmail.com</strong>
             </div>
             <ArrowRight className={styles.cardArrow} size={19} />
           </a>
