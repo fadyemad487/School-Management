@@ -61,7 +61,9 @@ export default function UpdatePasswordPage() {
     };
 
     const { data: { subscription } } = authClient.auth.onAuthStateChange((event, session) => {
-      if (!session || (event !== "PASSWORD_RECOVERY" && !hasVerifiedPasswordRecovery())) return;
+      const recoveryCallbackEvent = event === "PASSWORD_RECOVERY" ||
+        (event === "SIGNED_IN" && hasVerifiedPasswordRecovery());
+      if (!session || !recoveryCallbackEvent) return;
 
       setRecoveryState("checking");
       // Defer Auth SDK calls until after its auth-state callback releases its lock.
@@ -177,7 +179,15 @@ export default function UpdatePasswordPage() {
             </p>
           </div>
 
-          {recoveryState === "checking" ? (
+          {success ? (
+            <div className="cv-reset-success" role="status" aria-live="polite">
+              <div className="cv-reset-success-icon"><CheckCircle2 size={27} strokeWidth={2.2} /></div>
+              <div>
+                <h2>{isAr ? "كلمة المرور اتغيرت بنجاح" : "Password updated"}</h2>
+                <p>{isAr ? "سجّل دخولك بكلمة المرور الجديدة للمتابعة." : "Sign in with your new password to continue."}</p>
+              </div>
+            </div>
+          ) : recoveryState === "checking" ? (
             <div className="cv-reset-status" role="status" aria-live="polite">
               <span className="cv-reset-spinner" />
               <p>{isAr ? "بنتأكد من رابط الاستعادة..." : "Verifying your recovery link..."}</p>
@@ -192,14 +202,6 @@ export default function UpdatePasswordPage() {
               <button type="button" onClick={returnToSignIn} className="cv-reset-submit">
                 {isAr ? "العودة لتسجيل الدخول" : t("auth_return_login")}
               </button>
-            </div>
-          ) : success ? (
-            <div className="cv-reset-success" role="status" aria-live="polite">
-              <div className="cv-reset-success-icon"><CheckCircle2 size={27} strokeWidth={2.2} /></div>
-              <div>
-                <h2>{isAr ? "كلمة المرور اتغيرت بنجاح" : "Password updated"}</h2>
-                <p>{isAr ? "سجّل دخولك بكلمة المرور الجديدة للمتابعة." : "Sign in with your new password to continue."}</p>
-              </div>
             </div>
           ) : (
             <form className="cv-reset-form" onSubmit={onSubmit}>
