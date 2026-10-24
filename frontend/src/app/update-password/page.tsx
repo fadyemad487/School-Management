@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ArrowLeft, CheckCircle2, GraduationCap, KeyRound, ShieldAlert } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, GraduationCap, ShieldCheck, ShieldAlert } from "lucide-react";
 
 import { hasVerifiedPasswordRecovery, PASSWORD_RECOVERY_SESSION_KEY, supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
@@ -120,17 +120,19 @@ export default function UpdatePasswordPage() {
   return (
     <main className={`cv-reset-page${isDark ? " cv-reset-page--dark" : ""}`} dir={isAr ? "rtl" : "ltr"}>
       <div className="cv-reset-topbar">
-        <Link href="/" className="cv-reset-brand" aria-label="EduControl home">
-          <span className="cv-reset-brand-mark"><GraduationCap size={21} strokeWidth={2.2} /></span>
-          <span>EduControl</span>
-        </Link>
-        <div className="cv-reset-tools">
-          <LanguageSwitcher appearance={isDark ? "onDark" : "onLight"} />
-          <ThemeToggle
-            isDark={isDark}
-            onToggle={toggleTheme}
-            labels={{ light: isAr ? "الوضع الفاتح" : "Switch to light mode", dark: isAr ? "الوضع الداكن" : "Switch to dark mode" }}
-          />
+        <div className="wrap cv-reset-nav">
+          <Link href="/" className="cv-reset-brand" aria-label="EduControl home">
+            <span className="cv-reset-brand-mark"><GraduationCap size={21} strokeWidth={2.2} /></span>
+            <span>EduControl</span>
+          </Link>
+          <div className="cv-reset-tools">
+            <LanguageSwitcher appearance={isDark ? "onDark" : "onLight"} />
+            <ThemeToggle
+              isDark={isDark}
+              onToggle={toggleTheme}
+              labels={{ light: isAr ? "الوضع الفاتح" : "Switch to light mode", dark: isAr ? "الوضع الداكن" : "Switch to dark mode" }}
+            />
+          </div>
         </div>
       </div>
 
@@ -142,7 +144,7 @@ export default function UpdatePasswordPage() {
           </button>
 
           <div className="cv-reset-heading">
-            <div className="cv-reset-icon"><KeyRound size={23} strokeWidth={2} /></div>
+            <div className="cv-reset-icon"><ShieldCheck size={24} strokeWidth={1.9} /></div>
             <p className="cv-reset-eyebrow">{isAr ? "أمان حسابك" : "ACCOUNT SECURITY"}</p>
             <h1>{isAr ? "اختار كلمة مرور جديدة" : "Choose a new password"}</h1>
             <p className="cv-reset-subtitle">
