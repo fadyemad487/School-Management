@@ -5741,61 +5741,6 @@ ul {
   background: rgba(129, 140, 248, 0.5);
 }
 
-.shell-nav__floating-tooltip {
-  position: fixed;
-  transform: translateY(-50%);
-  background: #0f172a;
-  color: #ffffff;
-  padding: 7px 14px;
-  border-radius: 9px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  pointer-events: none;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.14);
-  z-index: 999999;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  animation: sidebarTooltipIn 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Arrow indicator for LTR */
-[dir="ltr"] .shell-nav__floating-tooltip::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  transform: translateY(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent #0f172a transparent transparent;
-}
-
-/* Arrow indicator for RTL */
-[dir="rtl"] .shell-nav__floating-tooltip::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent transparent #0f172a;
-}
-
-@keyframes sidebarTooltipIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-}
-
 .shell-nav__group {
   margin-top: 20px;
 }

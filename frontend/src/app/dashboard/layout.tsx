@@ -151,16 +151,6 @@ function SidebarNav({
   collapsed: boolean;
   onNavigate?: () => void;
 }) {
-  const [activeTooltip, setActiveTooltip] = useState<{
-    label: string;
-    top: number;
-    stylePos: { left?: number; right?: number };
-  } | null>(null);
-
-  useEffect(() => {
-    setActiveTooltip(null);
-  }, [collapsed]);
-
   return (
     <nav className="shell-nav" aria-label="Main" data-collapsed={collapsed ? "true" : "false"}>
       {NAV_GROUPS.map((group) => (
@@ -169,37 +159,15 @@ function SidebarNav({
           <div className="shell-nav__group-items">
             {group.items.map(({ href, labelKey, Icon }) => {
               const active = navActive(href, pathname);
-              const label = t(labelKey);
               return (
                 <Link
                   key={href}
                   href={href}
                   className={`shell-nav__link${active ? " shell-nav__link--active" : ""}`}
-                  onMouseEnter={(e) => {
-                    if (!collapsed) return;
-                    const linkRect = e.currentTarget.getBoundingClientRect();
-                    const sidebar = document.querySelector(".shell-sidebar");
-                    const sidebarRect = sidebar ? sidebar.getBoundingClientRect() : linkRect;
-                    const isRtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
-
-                    setActiveTooltip({
-                      label,
-                      top: linkRect.top + linkRect.height / 2,
-                      stylePos: isRtl
-                        ? { right: window.innerWidth - sidebarRect.left + 12 }
-                        : { left: sidebarRect.right + 12 },
-                    });
-                  }}
-                  onMouseLeave={() => {
-                    setActiveTooltip(null);
-                  }}
-                  onClick={() => {
-                    setActiveTooltip(null);
-                    onNavigate?.();
-                  }}
+                  title={collapsed ? t(labelKey) : undefined}
                 >
                   <Icon className="shell-nav__icon" size={20} strokeWidth={1.75} aria-hidden />
-                  <span className="shell-nav__label">{label}</span>
+                  <span className="shell-nav__label">{t(labelKey)}</span>
                   <ChevronRight className="shell-nav__chev" size={16} strokeWidth={2} aria-hidden />
                 </Link>
               );
@@ -207,18 +175,6 @@ function SidebarNav({
           </div>
         </div>
       ))}
-
-      {collapsed && activeTooltip && typeof window !== "undefined" && (
-        <div
-          className="shell-nav__floating-tooltip"
-          style={{
-            top: activeTooltip.top,
-            ...activeTooltip.stylePos,
-          }}
-        >
-          <span>{activeTooltip.label}</span>
-        </div>
-      )}
     </nav>
   );
 }
