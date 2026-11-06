@@ -151,6 +151,12 @@ function SidebarNav({
   collapsed: boolean;
   onNavigate?: () => void;
 }) {
+  const [activeTooltip, setActiveTooltip] = useState<{ label: string; top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    setActiveTooltip(null);
+  }, [collapsed]);
+
   return (
     <nav className="shell-nav" aria-label="Main" data-collapsed={collapsed ? "true" : "false"}>
       {NAV_GROUPS.map((group) => (
@@ -159,15 +165,32 @@ function SidebarNav({
           <div className="shell-nav__group-items">
             {group.items.map(({ href, labelKey, Icon }) => {
               const active = navActive(href, pathname);
+              const label = t(labelKey);
               return (
                 <Link
                   key={href}
                   href={href}
                   className={`shell-nav__link${active ? " shell-nav__link--active" : ""}`}
-                  title={collapsed ? t(labelKey) : undefined}
+                  onMouseEnter={(e) => {
+                    if (!collapsed) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const isRtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
+                    setActiveTooltip({
+                      label,
+                      top: rect.top + rect.height / 2,
+                      left: isRtl ? rect.left - 10 : rect.right + 10,
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    setActiveTooltip(null);
+                  }}
+                  onClick={() => {
+                    setActiveTooltip(null);
+                    onNavigate?.();
+                  }}
                 >
                   <Icon className="shell-nav__icon" size={20} strokeWidth={1.75} aria-hidden />
-                  <span className="shell-nav__label">{t(labelKey)}</span>
+                  <span className="shell-nav__label">{label}</span>
                   <ChevronRight className="shell-nav__chev" size={16} strokeWidth={2} aria-hidden />
                 </Link>
               );
@@ -175,6 +198,37 @@ function SidebarNav({
           </div>
         </div>
       ))}
+
+      {collapsed && activeTooltip && typeof window !== "undefined" && (
+        <div
+          style={{
+            position: "fixed",
+            top: activeTooltip.top,
+            ...(typeof document !== "undefined" && document.documentElement.dir === "rtl"
+              ? { right: window.innerWidth - activeTooltip.left }
+              : { left: activeTooltip.left }),
+            transform: "translateY(-50%)",
+            background: "rgba(15, 23, 42, 0.94)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            color: "#ffffff",
+            padding: "6px 14px",
+            borderRadius: "10px",
+            fontSize: "12px",
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15)",
+            zIndex: 999999,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            animation: "sidebarTooltipIn 0.12s ease-out forwards",
+          }}
+        >
+          <span>{activeTooltip.label}</span>
+        </div>
+      )}
     </nav>
   );
 }

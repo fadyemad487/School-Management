@@ -9,14 +9,15 @@ import { api } from "@/lib/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export function AIChatAssistant({ isOpen, onClose, theme }: { isOpen: boolean; onClose: () => void; theme: "light" | "dark" }) {
+export function AIChatAssistant({ isOpen, onClose, theme }: { isOpen: boolean; onClose: () => void; theme?: "light" | "dark" }) {
   const { isAr } = useTranslation();
   const { user } = useAuth();
   const schoolName = user?.school?.name || (isAr ? "إديو كنترول" : "EduControl");
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<{ role: "user" | "model"; parts: { text: string }[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const isDarkMode = theme === "dark";
+  // Always preserve the signature cosmic deep-dark glassmorphism theme for the AI Assistant
+  const isDarkMode = true;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // New States for Sessions

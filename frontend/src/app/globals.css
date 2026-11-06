@@ -5650,9 +5650,15 @@ ul {
   padding: 0 14px 18px;
   backdrop-filter: none !important;
   color: var(--shell-text) !important;
-  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
-  align-self: stretch;
+  align-self: flex-start;
+  z-index: 50;
 }
 
 [dir="rtl"] .dashboard.dashboard--saas aside.dashboard__aside.shell-sidebar {
@@ -5669,6 +5675,7 @@ ul {
   margin-inline: -14px;
   height: 72px;
   border-bottom: 1px solid var(--shell-border);
+  flex-shrink: 0;
 }
 
 .shell-sidebar__logo {
@@ -5697,10 +5704,52 @@ ul {
 
 .shell-nav {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 0 16px;
-  margin: 0 -4px;
+  padding: 8px 4px 20px;
+  margin: 0 -8px 0 -4px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+.shell-nav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.shell-nav::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+
+.shell-nav::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.shell-nav:hover::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.45);
+}
+
+.dashboard.dashboard--dark .shell-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.dashboard.dashboard--dark .shell-nav:hover::-webkit-scrollbar-thumb {
+  background: rgba(129, 140, 248, 0.5);
+}
+
+@keyframes sidebarTooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
 }
 
 .shell-nav__group {
